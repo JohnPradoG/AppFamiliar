@@ -16,8 +16,8 @@ do $$ declare r record; n bigint; begin
    where table_schema = 'public' and grantee in ('anon','authenticated') and privilege_type = 'UPDATE';
   perform test.eq('UPDATE de tabla completa: ninguno', n, 0);
   select count(*) into n from information_schema.column_privileges
-   where table_schema = 'public' and grantee in ('anon','authenticated') and privilege_type = 'UPDATE' and not (table_name = 'notifications' and column_name = 'read_at');
-  perform test.eq('el único UPDATE por columna permitido es notifications.read_at', n, 0);
+   where table_schema = 'public' and grantee in ('anon','authenticated') and privilege_type = 'UPDATE';
+  perform test.eq('ningún UPDATE por columna para clientes', n, 0);
 
   -- 3) El rol anónimo no puede nada en public.
   select count(*) into n from information_schema.role_table_grants where table_schema = 'public' and grantee = 'anon';

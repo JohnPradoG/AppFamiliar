@@ -26,7 +26,8 @@ begin
   perform test.denied('John no puede llamar add_balance', format('select public.add_balance(%L,1000,now()::date,''other'')', test.id('acc_john')));
   perform test.denied('John no puede llamar register_transfer', format('select public.register_transfer(%L,1000,now()::date)', test.id('acc_john')));
   perform test.denied('John no puede llamar update_income', 'select public.update_income(gen_random_uuid(), now()::date, 1, null)');
-  perform test.denied('John no puede leer notificaciones ajenas ni reescribirlas', 'update public.notifications set body = ''x''');
+  perform test.denied('John no puede reescribir notificaciones', 'update public.notifications set body = ''x''');
+  perform test.denied('John no puede marcar leídas por tabla (solo por función)', 'update public.notifications set read_at = now()');
 end $$;
 
 -- CASO 7: el hermano NO ve nada de John.

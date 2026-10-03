@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts src/security.test.ts",
+    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/lib/chunks.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts src/security.test.ts",
     "test:db": "bash supabase/tests/run.sh",
     "setup:build": "bash scripts/build-setup.sh"
   },
@@ -27,6 +27,7 @@
     "expo-router": "~57.0.24",
     "expo-secure-store": "~57.0.4",
     "expo-sharing": "~57.0.22",
+    "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-dom": "^19.2.3",

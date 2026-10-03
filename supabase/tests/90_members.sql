@@ -67,3 +67,18 @@ do $$ begin
   perform test.eq('reactivado: su saldo intacto', test.bal('brother'), 165000);
 end $$;
 reset role;
+
+-- Notificaciones: marcar leídas solo afecta a quien llama
+select test.login('mama');
+do $$ begin perform public.add_balance(test.id('acc_john'), 1000, '2026-10-11', 'work'); perform public.add_balance(test.id('acc_brother'), 1000, '2026-10-11', 'work'); end $$;
+select test.login('john');
+do $$ begin
+  perform test.eq('John tiene notificaciones sin leer', (select (count(*) > 0)::int from public.notifications where read_at is null), 1);
+  perform public.mark_notifications_read();
+  perform test.eq('John ya no tiene sin leer', (select count(*) from public.notifications where read_at is null), 0);
+end $$;
+select test.login('brother');
+do $$ begin
+  perform test.eq('las del hermano siguen sin leer', (select (count(*) > 0)::int from public.notifications where read_at is null), 1);
+end $$;
+reset role;

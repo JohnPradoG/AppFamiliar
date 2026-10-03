@@ -241,3 +241,17 @@ export async function deleteIncome(id: string, reason: string | null): Promise<v
 export async function registerCorrection(v: { accountId: string; signedAmount: number; date: string; concept: string }): Promise<void> {
   unwrap(await supabase.rpc('register_correction', { p_account: v.accountId, p_signed_amount: v.signedAmount, p_date: v.date, p_concept: v.concept }));
 }
+
+// ───────── Notificaciones (Fase 9) ─────────
+export type AppNotification = { id: string; title: string; body: string; created_at: string; read_at: string | null };
+export async function fetchNotifications(): Promise<AppNotification[]> {
+  return unwrap(await supabase.from('notifications').select('id, title, body, created_at, read_at').order('created_at', { ascending: false }).limit(100)) as AppNotification[];
+}
+export async function fetchUnreadCount(): Promise<number> {
+  const { count, error } = await supabase.from('notifications').select('id', { count: 'exact', head: true }).is('read_at', null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+export async function markNotificationsRead(): Promise<void> {
+  unwrap(await supabase.rpc('mark_notifications_read'));
+}

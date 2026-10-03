@@ -100,7 +100,7 @@ select test.login('john');
 do $$ begin
   perform test.eq('John no ve movimientos eliminados', (select count(*) from public.account_movements where deleted_at is not null), 0);
 end $$;
-update public.notifications set read_at = now() where read_at is null;
+select public.mark_notifications_read();
 do $$ begin
   perform test.eq('John marcó sus notificaciones como leídas', (select count(*) from public.notifications where read_at is null), 0);
 end $$;

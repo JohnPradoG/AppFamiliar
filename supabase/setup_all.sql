@@ -1,4 +1,4 @@
--- AppFamiliar · TODA la base de datos en un solo archivo (migraciones 0001–0010 juntas).
+-- AppFamiliar · TODA la base de datos en un solo archivo (migraciones 0001–0011 juntas).
 -- Pegar completo en Supabase → SQL Editor → New query → Run. Se ejecuta UNA sola vez.
 -- Generado por scripts/build-setup.sh: no editar a mano.
 
@@ -900,3 +900,18 @@ begin
              'user_id', case when public.is_admin() then p.id end) order by p.display_name)
       from public.accounts a join public.profiles p on p.id = a.user_id), '[]'::jsonb);
 end $$;
+
+-- ═════════ 0011_notifications_rpc.sql ═════════
+-- AppFamiliar · 0011 · Marcar notificaciones como leídas por función; los clientes ya no escriben NINGUNA tabla.
+
+create function public.mark_notifications_read() returns void
+language sql security definer set search_path = '' as $$
+  update public.notifications n set read_at = now()
+   where n.user_id = auth.uid() and n.read_at is null
+     and exists (select 1 from public.profiles p where p.id = auth.uid() and p.active);
+$$;
+revoke all on function public.mark_notifications_read() from public, anon;
+grant execute on function public.mark_notifications_read() to authenticated;
+
+revoke update (read_at) on public.notifications from authenticated;
+drop policy notifications_mark_read on public.notifications;
