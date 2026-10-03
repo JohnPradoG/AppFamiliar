@@ -8,8 +8,9 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts",
-    "test:db": "bash supabase/tests/run.sh"
+    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts src/security.test.ts",
+    "test:db": "bash supabase/tests/run.sh",
+    "setup:build": "bash scripts/build-setup.sh"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",

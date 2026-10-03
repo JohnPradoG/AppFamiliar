@@ -9,7 +9,7 @@
 | 5. Movimientos + saldos + transferencias | **Hecho:** pestañas de mamá Inicio · Ingresos · Transferencias · Cuentas · Más; formularios Registrar ingreso (con asignación opcional y distinta por hijo), Agregar saldo (Trabajo/Máquina/Otro/Personalizado), Transferir (aviso si deja saldo negativo); detalle de cuenta con origen del saldo y movimientos. Validaciones con pruebas. Pendiente: adjuntar comprobante (Fase 6) |
 | 6. Comprobantes | **Hecho:** adjuntar al transferir (elegir archivo o tomar foto; JPG/PNG/PDF ≤ 10 MB), subida a Storage privado + registro; pestaña Comprobantes del hijo; visor con enlace temporal de 2 min. Validación y rutas con pruebas; privacidad probada en BD (`40_`) |
 | 7. Edición + eliminación + auditoría | **Hecho:** Historial de mamá con filtros (período incl. Personalizado, tipo, cuenta, máquina, monto) y orden; exportar CSV; detalle de movimiento (editar con motivo, eliminar con confirmación mostrando tipo/monto/destinatario, comprobantes, registro de cambios con valor anterior/nuevo y quién); editar/eliminar ingreso con su reparto; registrar corrección |
-| 8. Seguridad + pruebas | 60+ pruebas de BD/RLS ya corren; falta pruebas de la app |
+| 8. Seguridad + pruebas | **Hecho (salvo prueba con Supabase real):** revisión de amenazas (`docs/SEGURIDAD.md`); corregido hueco: un ayudante ya no puede pedir enlaces para otra persona; límites de datos, auditoría inmutable, invariantes de seguridad en la BD (RLS forzada, sin escritura directa, `search_path`), pruebas estáticas de la app, CI en GitHub Actions |
 | 9. Diseño final | pendiente |
 | 10. Publicación | pendiente |
 

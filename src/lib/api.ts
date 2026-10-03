@@ -49,7 +49,7 @@ export function friendlyError(e: unknown): string {
   return 'Ocurrió un error. Intente de nuevo.';
 }
 
-export type Member = { owner_key: string; display_name: string; is_helper: boolean; active: boolean; user_id: string | null };
+export type Member = { owner_key: string; display_name: string; is_helper: boolean; active: boolean; is_me: boolean; user_id: string | null };
 // Estado de registro de la familia, sin dinero. Lo pueden pedir mamá y los ayudantes.
 export async function fetchMembers(): Promise<Member[]> {
   return unwrap(await supabase.rpc('family_status')) as Member[];

@@ -1,7 +1,7 @@
 // Lógica pura (sin Deno) para poder probarla con `npm test`.
 export type Deps = {
   getCaller(authHeader: string | null): Promise<{ id: string } | null>;
-  canInvite(userId: string): Promise<boolean>;   // mamá (admin) o un hijo con permiso de ayudante
+  getRole(userId: string): Promise<'admin' | 'helper' | null>;   // mamá, un hijo con permiso de ayudante, o nadie
   findMember(ownerKey: string): Promise<{ userId: string; email: string; displayName: string; active: boolean } | null>;
   ownerKeyExists(ownerKey: string): Promise<boolean>;
   emailTaken(email: string): Promise<boolean>;
@@ -25,7 +25,8 @@ export function slugify(name: string): string {
 export async function handleInvite(authHeader: string | null, body: unknown, d: Deps): Promise<Result> {
   const caller = await d.getCaller(authHeader);
   if (!caller) return { status: 401, json: { error: 'Inicie sesión.' } };
-  if (!(await d.canInvite(caller.id))) return { status: 403, json: { error: 'No tiene permiso para invitar.' } };
+  const role = await d.getRole(caller.id);
+  if (!role) return { status: 403, json: { error: 'No tiene permiso para invitar.' } };
 
   const b = (body ?? {}) as Record<string, unknown>;
   try {
@@ -33,6 +34,9 @@ export async function handleInvite(authHeader: string | null, body: unknown, d: 
       if (typeof b.owner_key !== 'string' || !KEY.test(b.owner_key)) return { status: 400, json: { error: 'Persona inválida.' } };
       const existing = await d.findMember(b.owner_key);
       if (!existing) return { status: 404, json: { error: 'Esa persona no existe.' } };
+      // SEGURIDAD: quien recibe el enlace puede entrar a esa cuenta. Un ayudante NO puede pedir enlaces para otra persona
+      // (se apropiaría de su cuenta y vería su dinero); solo mamá, o la propia persona para sí misma.
+      if (role !== 'admin' && existing.userId !== caller.id) return { status: 403, json: { error: 'Solo mamá puede enviar un enlace nuevo a otra persona.' } };
       if (!existing.active) return { status: 409, json: { error: 'Esa persona está sin acceso. Reactívela primero.' } };
       const code = await d.createInvitation({ ownerKey: b.owner_key, kind: 'reset', email: existing.email, displayName: existing.displayName, createdBy: caller.id });
       return { status: 200, json: { code, email: existing.email, display_name: existing.displayName, resent: true } };

@@ -14,9 +14,10 @@ const deps: Deps = {
     const { data, error } = await admin.auth.getUser(jwt);
     return error || !data.user ? null : { id: data.user.id };
   },
-  async canInvite(id) {
-    const { data } = await admin.from('profiles').select('role, is_helper').eq('id', id).maybeSingle();
-    return data?.role === 'admin' || (data?.role === 'user' && data.is_helper === true);
+  async getRole(id) {
+    const { data } = await admin.from('profiles').select('role, is_helper, active').eq('id', id).maybeSingle();
+    if (data?.role === 'admin') return 'admin';
+    return data?.role === 'user' && data.is_helper === true && data.active !== false ? 'helper' : null;
   },
   async findMember(ownerKey) {
     const { data } = await admin.from('accounts').select('user_id').eq('owner_key', ownerKey).maybeSingle();

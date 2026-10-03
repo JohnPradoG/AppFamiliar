@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Instalar PostgreSQL 16 para las pruebas de base de datos
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-16
+      - run: npm run test:db
+      - name: setup_all.sql está al día con las migraciones
+        run: |
+          bash scripts/build-setup.sh
+          git diff --exit-code supabase/setup_all.sql
+      - name: setup_all.sql funciona
+        run: bash supabase/tests/check_setup_all.sh

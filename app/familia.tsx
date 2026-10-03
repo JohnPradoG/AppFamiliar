@@ -55,7 +55,7 @@ function MemberCard({ m, isAdmin, onChanged }: { m: Member; isAdmin: boolean; on
         </View>
       )}
       {error && <ErrorText>{error}</ErrorText>}
-      {m.active && <Button label="Enviar enlace nuevo (contraseña olvidada)" kind="ghost" busy={busy} onPress={() => run(() => shareInvite({ ownerKey: m.owner_key }))} />}
+      {m.active && (isAdmin || m.is_me) && <Button label="Enviar enlace nuevo (contraseña olvidada)" kind="ghost" busy={busy} onPress={() => run(() => shareInvite({ ownerKey: m.owner_key }))} />}
       {isAdmin && m.user_id && (
         <View style={{ gap: 4 }}>
           {m.active && <Button label="Cambiar nombre" kind="ghost" onPress={() => setEditing(!editing)} />}

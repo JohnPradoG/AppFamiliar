@@ -6,7 +6,7 @@ function mk(over: Partial<Deps> = {}) {
   const calls: string[] = [];
   const d: Deps = {
     getCaller: async (h) => (['Bearer mama', 'Bearer john', 'Bearer helper'].includes(h ?? '') ? { id: (h as string).slice(7) } : null),
-    canInvite: async (id) => id === 'mama' || id === 'helper',
+    getRole: async (id) => (id === 'mama' ? 'admin' : id === 'helper' ? 'helper' : null),
     findMember: async () => null,
     ownerKeyExists: async () => false,
     emailTaken: async () => false,
@@ -65,6 +65,19 @@ test('persona existente: enlace nuevo (reset); sin acceso → 409; inexistente �
   assert.equal((await handleInvite('Bearer mama', { owner_key: 'john' }, b.d)).status, 409);
   assert.deepEqual(b.calls, []);
   assert.equal((await handleInvite('Bearer mama', { owner_key: 'nadie' }, mk().d)).status, 404);
+});
+test('SEGURIDAD: un ayudante NO puede pedir un enlace nuevo para otra persona (tomaría su cuenta)', async () => {
+  const { d, calls } = mk({ findMember: async () => ({ userId: 'u-mauricio', email: 'm@x.com', displayName: 'Mauricio', active: true }) });
+  const r = await handleInvite('Bearer helper', { owner_key: 'mauricio' }, d);
+  assert.equal(r.status, 403);
+  assert.deepEqual(calls, []);
+  assert.equal(JSON.stringify(r.json).includes('m@x.com'), false);          // ni siquiera revela el correo
+});
+test('un ayudante SÍ puede pedir el enlace para sí mismo; mamá para cualquiera', async () => {
+  const own = mk({ findMember: async () => ({ userId: 'helper', email: 'h@x.com', displayName: 'John', active: true }) });
+  assert.equal((await handleInvite('Bearer helper', { owner_key: 'john' }, own.d)).status, 200);
+  const other = mk({ findMember: async () => ({ userId: 'u-mauricio', email: 'm@x.com', displayName: 'Mauricio', active: true }) });
+  assert.equal((await handleInvite('Bearer mama', { owner_key: 'mauricio' }, other.d)).status, 200);
 });
 test('correo ya registrado → 409 y no se crea invitación', async () => {
   const { d, calls } = mk({ emailTaken: async () => true });
