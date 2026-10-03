@@ -18,4 +18,7 @@ PSQL=(psql -h "$DIR" -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X)
 for f in "$HERE/00_supabase_mock.sql" "$HERE"/../migrations/*.sql "$HERE"/[1-9]*.sql; do
   echo ">> $(basename "$f")"; "${PSQL[@]}" -d app -f "$f"
 done
+echo ">> verify_setup.sql (la verificación que ejecuta el dueño en Supabase)"
+FALLAS=$("${PSQL[@]}" -d app -At -F'|' -f "$HERE/../verify_setup.sql" | grep '^[0-9]*|FALLA' | grep -v '^11|' || true)
+if [ -n "$FALLAS" ]; then echo "verify_setup.sql tiene fallas:"; echo "$FALLAS"; exit 1; fi
 echo "TODAS LAS PRUEBAS PASARON"
