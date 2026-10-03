@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>AppFamiliar · Invitación</title>
+<style>
+  :root { --bg:#0B1630; --card:#13224A; --border:#27396E; --text:#F3F6FF; --muted:#9FB0D8; --info:#4DA3FF; --ok:#2ECC8F; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--bg); color:var(--text);
+         font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; padding:16px; }
+  main { width:100%; max-width:440px; display:grid; gap:16px; }
+  h1 { margin:0; font-size:28px; }
+  p { margin:0; color:var(--muted); line-height:1.5; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:20px; display:grid; gap:12px; }
+  .step { font-weight:700; }
+  a.btn, button { display:block; text-align:center; text-decoration:none; border:0; cursor:pointer; font:inherit; font-weight:700;
+         border-radius:14px; padding:15px; background:var(--info); color:#06122B; }
+  a.btn.ok { background:var(--ok); }
+  code { word-break:break-all; background:#0B1630; border:1px solid var(--border); border-radius:10px; padding:10px; color:var(--text); display:block; }
+  .small { font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>AppFamiliar</h1>
+  <p>Mamá te invitó. Son dos pasos y solo toma un minuto.</p>
+
+  <div class="card">
+    <div class="step">1. Descarga e instala la app</div>
+    <a class="btn" id="apk" href="#">Descargar app (Android)</a>
+    <p class="small">Si Android pregunta, permite instalar desde este navegador. Es normal: la app es solo de la familia.</p>
+  </div>
+
+  <div class="card">
+    <div class="step">2. Crea tu contraseña</div>
+    <a class="btn ok" id="open" href="#">Abrir la app y crear mi contraseña</a>
+    <p class="small">Este enlace sirve <b>una sola vez</b>. Si la app no se abre, entra a ella, toca <b>“Tengo una invitación”</b> y pega este código:</p>
+    <code id="code">—</code>
+  </div>
+</main>
+<script>
+  // ▼ EDITAR antes de publicar: dirección de descarga del APK (por ejemplo, un enlace de Google Drive/GitHub Releases).
+  var APK_URL = "https://REEMPLAZAR-CON-EL-ENLACE-DEL-APK";
+  // ▲
+  var code = new URLSearchParams(location.search).get("c") || "";
+  var valid = /^[A-Za-z0-9_-]{22}$/.test(code);
+  document.getElementById("apk").href = APK_URL;
+  document.getElementById("code").textContent = valid ? code : "Enlace incompleto: pídale a mamá que lo envíe de nuevo.";
+  document.getElementById("open").href = valid ? "appfamiliar://invitacion?code=" + encodeURIComponent(code) : "#";
+  // La página nunca consume la invitación: solo se gasta cuando la persona crea su contraseña dentro de la app.
+</script>
+</body>
+</html>

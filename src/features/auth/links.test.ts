@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { inviteMessage, parseAuthUrl, translateAuthError } from './links.ts';
+import { extractCode, inviteMessage, parseAuthUrl, translateAuthError } from './links.ts';
 
 test('parseAuthUrl lee los tokens del fragmento', () => {
   assert.deepEqual(parseAuthUrl('appfamiliar://set-password#access_token=a.b.c&refresh_token=xyz&type=invite'), { access_token: 'a.b.c', refresh_token: 'xyz' });
@@ -12,8 +12,13 @@ test('errores en español, sin filtrar detalles técnicos', () => {
   assert.equal(translateAuthError('Invalid login credentials'), 'Correo o contraseña incorrectos.');
   assert.equal(translateAuthError('weird internal 500 stack'), 'No se pudo completar la operación. Intente de nuevo.');
 });
-test('mensaje de invitación', () => {
-  const m = inviteMessage('John', 'https://apk', 'https://link');
-  assert.ok(m.includes('Hola John') && m.includes('1) Descarga') && m.includes('2) Con la app') && m.includes('https://link'));
-  assert.ok(!inviteMessage('John', undefined, 'https://link').includes('Descarga'));
+test('mensaje de invitación: un solo enlace y el código', () => {
+  const m = inviteMessage('John', 'https://x/?c=AAAAAAAAAAAAAAAAAAAAAA', 'AAAAAAAAAAAAAAAAAAAAAA');
+  assert.ok(m.includes('Hola John') && m.includes('https://x/?c=') && m.includes('código'));
+});
+test('extractCode acepta código suelto o enlace', () => {
+  const c = 'abcdefghijklmnopqrstuv';
+  assert.equal(extractCode(`  ${c} `), c);
+  assert.equal(extractCode(`https://host/?c=${c}`), c);
+  assert.equal(extractCode(`appfamiliar://invitacion?code=${c}`), c);
 });

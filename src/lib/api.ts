@@ -46,13 +46,22 @@ export async function fetchMembers(): Promise<Member[]> {
   return accounts.map((a) => ({ owner_key: a.owner_key, display_name: profiles.find((p) => p.id === a.user_id)?.display_name ?? '' }));
 }
 
-// Pide a la Edge Function un enlace de invitación (o uno nuevo si el hijo ya fue invitado). Nunca maneja contraseñas.
-export async function inviteMember(ownerKey: 'john' | 'brother', email?: string, displayName?: string): Promise<{ link: string; email: string; resent: boolean }> {
-  const { data, error } = await supabase.functions.invoke('invite-member', { body: { owner_key: ownerKey, email, display_name: displayName } });
+async function callFunction<T>(name: string, body: object): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, { body });
   if (error) {
     const ctx = (error as { context?: Response }).context;
     const detail = ctx && typeof ctx.json === 'function' ? await ctx.json().catch(() => null) : null;
     throw new Error(detail?.error ?? error.message);
   }
-  return data as { link: string; email: string; resent: boolean };
+  return data as T;
+}
+
+export type Invite = { code: string; link: string; email: string; display_name: string; resent: boolean };
+// Mamá pide una invitación de un solo uso (o una nueva si el hijo ya tiene cuenta). Nunca se manejan contraseñas.
+export function inviteMember(ownerKey: 'john' | 'brother', email?: string, displayName?: string): Promise<Invite> {
+  return callFunction('invite-member', { owner_key: ownerKey, email, display_name: displayName });
+}
+// Pantalla pública: canjea el código y crea la cuenta con la contraseña que elige la persona.
+export function acceptInvite(code: string, password: string): Promise<{ email: string }> {
+  return callFunction('accept-invite', { code, password });
 }

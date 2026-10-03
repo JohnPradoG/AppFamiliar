@@ -5,13 +5,11 @@ import { handleInvite, type Deps } from './handler.ts';
 function mk(over: Partial<Deps> = {}) {
   const calls: string[] = [];
   const d: Deps = {
-    redirectTo: 'appfamiliar://set-password',
     getCaller: async (h) => (h === 'Bearer mama' || h === 'Bearer john' ? { id: h.slice(7) } : null),
     isAdmin: async (id) => id === 'mama',
     findMember: async () => null,
-    generateLink: async (kind, email) => { calls.push(`link:${kind}:${email}`); return { link: 'https://x/verify?token=1', userId: 'u1' }; },
-    createMember: async (u, k, n) => { calls.push(`member:${u}:${k}:${n}`); },
-    deleteUser: async (u) => { calls.push(`delete:${u}`); },
+    emailTaken: async () => false,
+    createInvitation: async (i) => { calls.push(`inv:${i.kind}:${i.ownerKey}:${i.email}:${i.displayName}`); return 'CODE'; },
     ...over,
   };
   return { d, calls };
@@ -24,14 +22,13 @@ test('un hijo NO puede invitar → 403 y no crea nada', async () => {
   assert.equal((await handleInvite('Bearer john', ok, d)).status, 403);
   assert.deepEqual(calls, []);
 });
-test('mamá invita: crea enlace de invitación y miembro (correo normalizado)', async () => {
+test('mamá invita: correo normalizado y sin contraseñas en la respuesta', async () => {
   const { d, calls } = mk();
   const r = await handleInvite('Bearer mama', ok, d);
   assert.equal(r.status, 200);
-  assert.equal(r.json.link, 'https://x/verify?token=1');
-  assert.equal(r.json.resent, false);
-  assert.deepEqual(calls, ['link:invite:john@mail.com', 'member:u1:john:John']);
-  assert.equal(JSON.stringify(r.json).includes('password'), false);
+  assert.equal(r.json.code, 'CODE');
+  assert.deepEqual(calls, ['inv:new:john:john@mail.com:John']);
+  assert.equal(JSON.stringify(r.json).toLowerCase().includes('password'), false);
 });
 test('validaciones: destinatario, correo y nombre', async () => {
   const { d } = mk();
@@ -40,20 +37,21 @@ test('validaciones: destinatario, correo y nombre', async () => {
   assert.equal((await handleInvite('Bearer mama', { ...ok, display_name: ' ' }, d)).status, 400);
   assert.equal((await handleInvite('Bearer mama', null, d)).status, 400);
 });
-test('si el hijo ya existe: reenvía con enlace de recuperación (sin tocar datos)', async () => {
-  const { d, calls } = mk({ findMember: async () => ({ userId: 'u9', email: 'j@x.com' }) });
+test('si el hijo ya tiene cuenta: invitación de reemplazo de contraseña (reset)', async () => {
+  const { d, calls } = mk({ findMember: async () => ({ userId: 'u9', email: 'j@x.com', displayName: 'John' }) });
   const r = await handleInvite('Bearer mama', { owner_key: 'john' }, d);
   assert.equal(r.status, 200);
   assert.equal(r.json.resent, true);
-  assert.deepEqual(calls, ['link:recovery:j@x.com']);
+  assert.deepEqual(calls, ['inv:reset:john:j@x.com:John']);
 });
-test('correo ya registrado → 409', async () => {
-  const { d } = mk({ generateLink: async () => { throw new Error('User already registered'); } });
+test('correo ya registrado → 409 y no se crea invitación', async () => {
+  const { d, calls } = mk({ emailTaken: async () => true });
   assert.equal((await handleInvite('Bearer mama', ok, d)).status, 409);
+  assert.deepEqual(calls, []);
 });
-test('si falla guardar el perfil, se borra el usuario creado (sin usuarios a medias)', async () => {
-  const { d, calls } = mk({ createMember: async () => { throw new Error('boom'); } });
+test('error interno → 500 genérico', async () => {
+  const { d } = mk({ createInvitation: async () => { throw new Error('db secret detail'); } });
   const r = await handleInvite('Bearer mama', ok, d);
   assert.equal(r.status, 500);
-  assert.ok(calls.includes('delete:u1'));
+  assert.equal(JSON.stringify(r.json).includes('secret'), false);
 });

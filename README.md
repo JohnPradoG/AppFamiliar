@@ -2,15 +2,15 @@
 App privada para llevar el dinero de la familia (mamá administra; cada hijo ve solo lo suyo). Ver `CLAUDE.md` y `docs/`.
 
 ## Puesta en marcha (una sola vez, la hace quien administra el proyecto)
-1. Crear proyecto en supabase.com. En **SQL Editor** ejecutar en orden `supabase/migrations/0001 … 0006`.
-2. **Authentication → Providers → Email:** desactivar "Allow new users to sign up". En **URL Configuration → Redirect URLs** agregar `appfamiliar://set-password`. En Email, subir la validez del enlace (OTP expiry) a 86400 s.
+1. Crear proyecto en supabase.com. En **SQL Editor** ejecutar en orden `supabase/migrations/0001 … 0007`.
+2. **Authentication → Providers → Email:** desactivar "Allow new users to sign up". En **URL Configuration → Redirect URLs** agregar `appfamiliar://set-password` (solo para "Olvidé mi contraseña").
 3. **Mamá:** Authentication → Users → *Invite user* con su correo; ella abre el enlace y crea su contraseña. Luego ejecutar `supabase/seed/provision_admin.sql` (con su correo).
-4. **Función de invitaciones:** `npx supabase login && npx supabase link --project-ref <ref> && npx supabase functions deploy invite-member`.
-5. `cp .env.example .env` y poner URL, llave anon y (opcional) el enlace de descarga del APK.
-6. `npm install && npx expo start` y probar en Android con Expo Go.
+4. **Funciones:** `npx supabase login && npx supabase link --project-ref <ref> && npx supabase functions deploy invite-member && npx supabase functions deploy accept-invite --no-verify-jwt`.
+5. **Página de invitación:** editar `APK_URL` en `web/invitacion/index.html` y subir esa carpeta a un hosting estático gratuito (Cloudflare Pages o Netlify: arrastrar la carpeta). Guardar su dirección como secreto: `npx supabase secrets set INVITE_BASE_URL=https://su-pagina.pages.dev`.
+6. `cp .env.example .env` (URL y llave anon) · `npm install && npx expo start` y probar en Android con Expo Go.
 
 ## Cómo entra la familia (sin enviar contraseñas)
-Mamá abre **Más → Invitar a la familia**, escribe nombre y correo de John / del hermano y toca *Crear invitación*. Se abre WhatsApp con un mensaje con el enlace de descarga del APK y un enlace de un solo uso. La persona instala la app, abre el enlace y **crea su propia contraseña**. Mamá no conoce ninguna contraseña. Si alguien la olvida, mamá envía un enlace nuevo desde la misma pantalla (o la persona usa "Olvidé mi contraseña").
+Mamá abre **Más → Invitar a la familia**, escribe nombre y correo de John / del hermano y toca *Crear invitación*. Se abre WhatsApp con **un solo enlace de un solo uso**. La persona lo abre en su Android: (1) descarga e instala la app, (2) toca "Abrir la app y crear mi contraseña" y elige **su propia contraseña**. Mamá no conoce ninguna contraseña. El enlace se gasta al crear la contraseña, vence a los 7 días y, si mamá genera otro para la misma persona, el anterior queda anulado. Si alguien olvida su contraseña, mamá envía un enlace nuevo desde la misma pantalla.
 
 ## Pruebas
 `npm run typecheck` · `npm test` · `npm run test:db`

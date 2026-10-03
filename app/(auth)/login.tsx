@@ -28,6 +28,7 @@ export default function Login() {
       {error && <ErrorText>{error}</ErrorText>}
       <Button label="Entrar" onPress={submit} busy={busy} />
       <Link href="/forgot-password" style={{ color: '#4DA3FF', fontSize: 16, textAlign: 'center' }}>Olvidé mi contraseña</Link>
+      <Link href="/invitacion" style={{ color: '#4DA3FF', fontSize: 16, textAlign: 'center' }}>Tengo una invitación</Link>
     </Screen>
   );
 }

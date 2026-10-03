@@ -13,3 +13,6 @@ otp_expiry = 86400                         # el enlace de invitación dura 24 h
 
 [functions.invite-member]
 verify_jwt = true                          # solo usuarios con sesión; además la función exige ser mamá
+
+[functions.accept-invite]
+verify_jwt = false                         # pública: la seguridad es el código de un solo uso

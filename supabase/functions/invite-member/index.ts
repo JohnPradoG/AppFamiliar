@@ -1,13 +1,13 @@
-// Edge Function de Supabase (Deno). Despliegue: supabase functions deploy invite-member
-// Usa la llave service_role, que Supabase inyecta como secreto SOLO dentro de la función (nunca llega a la app).
+// Edge Function (Deno). Despliegue: supabase functions deploy invite-member
+// Secreto opcional: INVITE_BASE_URL (dirección de la página de invitación, ver web/invitacion).
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { generateCode, hashCode } from '../_shared/token.ts';
 import { handleInvite, type Deps, type OwnerKey } from './handler.ts';
 
-const url = Deno.env.get('SUPABASE_URL')!;
-const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+const base = Deno.env.get('INVITE_BASE_URL');
 
 const deps: Deps = {
-  redirectTo: Deno.env.get('APP_REDIRECT_URL') ?? 'appfamiliar://set-password',
   async getCaller(authHeader) {
     const jwt = authHeader?.replace(/^Bearer\s+/i, '');
     if (!jwt) return null;
@@ -22,32 +22,36 @@ const deps: Deps = {
     const { data } = await admin.from('accounts').select('user_id').eq('owner_key', ownerKey).maybeSingle();
     if (!data) return null;
     const { data: u } = await admin.auth.admin.getUserById(data.user_id);
-    return u.user?.email ? { userId: data.user_id, email: u.user.email } : null;
+    const { data: p } = await admin.from('profiles').select('display_name').eq('id', data.user_id).maybeSingle();
+    return u.user?.email ? { userId: data.user_id, email: u.user.email, displayName: p?.display_name ?? '' } : null;
   },
-  async generateLink(kind, email, redirectTo) {
-    const { data, error } = await admin.auth.admin.generateLink({ type: kind, email, options: { redirectTo } });
-    if (error || !data.properties?.action_link) throw new Error(error?.message ?? 'sin enlace');
-    return { link: data.properties.action_link, userId: data.user.id };
+  async emailTaken(email) {
+    const { data, error } = await admin.rpc('_email_taken', { p_email: email });
+    if (error) throw new Error(error.message);
+    return Boolean(data);
   },
-  async createMember(userId, ownerKey, displayName, adminId) {
-    const p = await admin.from('profiles').insert({ id: userId, role: 'user', display_name: displayName });
-    if (p.error) throw new Error(p.error.message);
-    const a = await admin.from('accounts').insert({ user_id: userId, owner_key: ownerKey, created_by: adminId });
-    if (a.error) throw new Error(a.error.message);
-  },
-  async deleteUser(id) {
-    await admin.from('accounts').delete().eq('user_id', id); // service_role ignora RLS
-    await admin.from('profiles').delete().eq('id', id);
-    await admin.auth.admin.deleteUser(id);
+  async createInvitation(i) {
+    // Una sola invitación vigente por hijo: las anteriores quedan anuladas.
+    await admin.from('invitations').update({ revoked_at: new Date().toISOString() }).eq('owner_key', i.ownerKey).is('used_at', null).is('revoked_at', null);
+    const code = generateCode();
+    const { error } = await admin.from('invitations').insert({
+      token_hash: await hashCode(code), owner_key: i.ownerKey, kind: i.kind, email: i.email, display_name: i.displayName, created_by: i.createdBy,
+    });
+    if (error) throw new Error(error.message);
+    return code;
   },
 };
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
+const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Método no permitido' }), { status: 405, headers: { ...cors, 'Content-Type': 'application/json' } });
-  const body = await req.json().catch(() => null);
-  const r = await handleInvite(req.headers.get('Authorization'), body, deps);
-  return new Response(JSON.stringify(r.json), { status: r.status, headers: { ...cors, 'Content-Type': 'application/json' } });
+  if (req.method !== 'POST') return json(405, { error: 'Método no permitido' });
+  const r = await handleInvite(req.headers.get('Authorization'), await req.json().catch(() => null), deps);
+  if (r.status === 200) {
+    const code = r.json.code as string;
+    r.json.link = base ? `${base.replace(/\/$/, '')}/?c=${code}` : `appfamiliar://invitacion?code=${code}`;
+  }
+  return json(r.status, r.json);
 });
