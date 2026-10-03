@@ -1,7 +1,7 @@
 import type { Movement, Origin } from './movements';
 import { supabase } from './supabase';
 
-export type DashboardAccount = { account_id: string; owner_key: 'john' | 'brother'; display_name: string; balance: number; assigned: number; transferred: number };
+export type DashboardAccount = { account_id: string; owner_key: string; display_name: string; balance: number; assigned: number; transferred: number };
 export type DashboardMachine = { id: string; name: string; description: string | null; active: boolean; total: number };
 export type Dashboard = {
   total_machine_income: number; unassigned_income: number; total_transferred: number; managed_balance: number;
@@ -39,17 +39,26 @@ export function isInsufficientFunds(e: unknown): boolean {
 export function friendlyError(e: unknown): string {
   const m = e instanceof Error ? e.message : '';
   // Las reglas de negocio de la base de datos (RAISE EXCEPTION) ya están escritas en español para mamá.
-  if ((e as { code?: string } | null)?.code === 'P0001' && m && !m.startsWith('Saldo insuficiente')) return m;
+  if ((e as { code?: string } | null)?.code === 'P0001' && m && !m.startsWith('Saldo insuficiente') && !m.startsWith('Saldo pendiente')) return m;
   if (m.includes('duplicate key') || m.includes('machines_name_unique')) return 'Ya existe una máquina con ese nombre.';
   if (m.includes('No autorizado')) return 'No tiene permiso para esta acción.';
   if (m.toLowerCase().includes('fetch') || m.toLowerCase().includes('network')) return 'Sin conexión. Revise su internet.';
   return 'Ocurrió un error. Intente de nuevo.';
 }
 
-export type Member = { owner_key: 'john' | 'brother'; display_name: string; is_helper: boolean; user_id: string | null };
+export type Member = { owner_key: string; display_name: string; is_helper: boolean; active: boolean; user_id: string | null };
 // Estado de registro de la familia, sin dinero. Lo pueden pedir mamá y los ayudantes.
 export async function fetchMembers(): Promise<Member[]> {
   return unwrap(await supabase.rpc('family_status')) as Member[];
+}
+export async function renameMember(userId: string, name: string): Promise<void> {
+  unwrap(await supabase.rpc('rename_member', { p_user: userId, p_name: name }));
+}
+export async function setMemberActive(userId: string, active: boolean, force = false): Promise<void> {
+  unwrap(await supabase.rpc('set_member_active', { p_user: userId, p_active: active, p_force: force }));
+}
+export function isPendingBalance(e: unknown): boolean {
+  return e instanceof Error && e.message.startsWith('Saldo pendiente');
 }
 export async function setHelper(userId: string, value: boolean): Promise<void> {
   unwrap(await supabase.rpc('set_helper', { p_user: userId, p_value: value }));
@@ -66,9 +75,9 @@ async function callFunction<T>(name: string, body: object): Promise<T> {
 }
 
 export type Invite = { code: string; link: string; email: string; display_name: string; resent: boolean };
-// Mamá pide una invitación de un solo uso (o una nueva si el hijo ya tiene cuenta). Nunca se manejan contraseñas.
-export function inviteMember(ownerKey: 'john' | 'brother', email?: string, displayName?: string): Promise<Invite> {
-  return callFunction('invite-member', { owner_key: ownerKey, email, display_name: displayName });
+// Sin ownerKey: agrega una persona nueva (nombre + correo). Con ownerKey: enlace nuevo para alguien que ya existe. Nunca se manejan contraseñas.
+export function inviteMember(args: { ownerKey?: string; email?: string; displayName?: string }): Promise<Invite> {
+  return callFunction('invite-member', { owner_key: args.ownerKey, email: args.email, display_name: args.displayName });
 }
 // Pantalla pública: canjea el código y crea la cuenta con la contraseña que elige la persona.
 export function acceptInvite(code: string, password: string): Promise<{ email: string }> {

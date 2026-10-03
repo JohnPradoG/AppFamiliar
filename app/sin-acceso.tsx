@@ -6,7 +6,7 @@ export default function SinAcceso() {
   return (
     <Screen>
       <Title>Cuenta sin permisos</Title>
-      <Muted>Su correo existe pero no fue asignado a la familia. Avise a quien administra la app.</Muted>
+      <Muted>Su acceso no está activo en este momento. Hable con mamá o con quien administra la app.</Muted>
       <Button label="Cerrar sesión" onPress={signOut} />
     </Screen>
   );

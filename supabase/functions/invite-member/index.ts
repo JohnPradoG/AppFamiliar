@@ -2,7 +2,7 @@
 // Secreto opcional: INVITE_BASE_URL (dirección de la página de invitación, ver web/invitacion).
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { generateCode, hashCode } from '../_shared/token.ts';
-import { handleInvite, type Deps, type OwnerKey } from './handler.ts';
+import { handleInvite, type Deps } from './handler.ts';
 
 const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
 const base = Deno.env.get('INVITE_BASE_URL');
@@ -18,12 +18,17 @@ const deps: Deps = {
     const { data } = await admin.from('profiles').select('role, is_helper').eq('id', id).maybeSingle();
     return data?.role === 'admin' || (data?.role === 'user' && data.is_helper === true);
   },
-  async findMember(ownerKey: OwnerKey) {
+  async findMember(ownerKey) {
     const { data } = await admin.from('accounts').select('user_id').eq('owner_key', ownerKey).maybeSingle();
     if (!data) return null;
     const { data: u } = await admin.auth.admin.getUserById(data.user_id);
-    const { data: p } = await admin.from('profiles').select('display_name').eq('id', data.user_id).maybeSingle();
-    return u.user?.email ? { userId: data.user_id, email: u.user.email, displayName: p?.display_name ?? '' } : null;
+    const { data: p } = await admin.from('profiles').select('display_name, active').eq('id', data.user_id).maybeSingle();
+    return u.user?.email ? { userId: data.user_id, email: u.user.email, displayName: p?.display_name ?? '', active: p?.active !== false } : null;
+  },
+  async ownerKeyExists(ownerKey) {
+    const a = await admin.from('accounts').select('id').eq('owner_key', ownerKey).maybeSingle();
+    const i = await admin.from('invitations').select('id').eq('owner_key', ownerKey).is('used_at', null).is('revoked_at', null).gt('expires_at', new Date().toISOString()).maybeSingle();
+    return Boolean(a.data || i.data);
   },
   async emailTaken(email) {
     const { data, error } = await admin.rpc('_email_taken', { p_email: email });

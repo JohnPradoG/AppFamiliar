@@ -1,6 +1,6 @@
 # AppFamiliar
 
-App móvil privada (3 usuarios: mamá=admin, John, hermano) para llevar el control del dinero familiar.
+App móvil privada para llevar el control del dinero familiar. Hoy: mamá=admin, John (quien pidió la app) y Mauricio (su hermano). La familia es flexible: mamá puede agregar/quitar personas.
 
 **Leer primero (no pedir al usuario que repita el encargo):**
 - `docs/ENCARGO.md` — requerimiento original completo (fuente de verdad).

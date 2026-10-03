@@ -1,15 +1,15 @@
 import { CODE_RE } from '../_shared/token.ts';
 
-export type Invitation = { id: string; owner_key: 'john' | 'brother'; kind: 'new' | 'reset'; email: string; display_name: string; created_by: string | null };
+export type Invitation = { id: string; owner_key: string; kind: 'new' | 'reset'; email: string; display_name: string; created_by: string | null };
 
 export type AcceptDeps = {
   hashCode(code: string): Promise<string>;
   claim(hash: string): Promise<Invitation | null>;      // atómico: marca used_at solo si estaba vigente y sin usar
   release(id: string): Promise<void>;                   // deshace el canje si algo falla
-  findMember(ownerKey: 'john' | 'brother'): Promise<{ userId: string } | null>;
+  findMember(ownerKey: string): Promise<{ userId: string } | null>;
   createUser(email: string, password: string): Promise<{ userId: string }>;   // lanza si el correo ya existe
   setPassword(userId: string, password: string): Promise<void>;
-  createMember(userId: string, ownerKey: 'john' | 'brother', displayName: string, adminId: string | null): Promise<void>;
+  createMember(userId: string, ownerKey: string, displayName: string, adminId: string | null): Promise<void>;
   deleteUser(userId: string): Promise<void>;
 };
 
