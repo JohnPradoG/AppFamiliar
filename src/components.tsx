@@ -87,3 +87,26 @@ const cardStyles = StyleSheet.create({
   chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
   chipOn: { backgroundColor: colors.info, borderColor: colors.info },
 });
+
+// ───────── Movimientos (Fase 3) ─────────
+import { formatSigned } from './lib/money';
+import { movementSubtitle, movementTitle, type Movement } from './lib/movements';
+
+export function MovementRow({ m }: { m: Movement }) {
+  const positive = m.signed_amount > 0;
+  const color = positive ? colors.positive : colors.negative;
+  const sub = movementSubtitle(m);
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+      <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.cardAlt, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color, fontSize: 20, fontWeight: '700' }}>{m.kind === 'correction' ? '±' : positive ? '↓' : '↑'}</Text>
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>{movementTitle(m)}{m.kind === 'correction' ? '  · corrección' : ''}</Text>
+        <Text style={{ color: colors.muted, fontSize: 13 }}>{m.movement_date}{sub ? ` · ${sub}` : ''}</Text>
+        <Text style={{ color: colors.muted, fontSize: 12 }}>Registrado por Mamá · modificado {m.updated_at.slice(0, 10)}</Text>
+      </View>
+      <Text style={{ color, fontSize: 17, fontWeight: '700' }}>{formatSigned(m.signed_amount)}</Text>
+    </View>
+  );
+}

@@ -1,3 +1,4 @@
+import type { Movement, Origin } from './movements';
 import { supabase } from './supabase';
 
 export type DashboardAccount = { account_id: string; owner_key: 'john' | 'brother'; display_name: string; balance: number; assigned: number; transferred: number };
@@ -66,4 +67,23 @@ export function inviteMember(ownerKey: 'john' | 'brother', email?: string, displ
 // Pantalla pública: canjea el código y crea la cuenta con la contraseña que elige la persona.
 export function acceptInvite(code: string, password: string): Promise<{ email: string }> {
   return callFunction('accept-invite', { code, password });
+}
+
+// ───────── Cuenta propia del hijo (RLS garantiza que solo existe SU cuenta) ─────────
+export type MyAccount = { account_id: string; balance: number };
+export type MySummary = {
+  balance: number; opening_balance: number; total_income: number; total_received: number;
+  by_origin: { origin: Origin; total: number }[];
+  last_movement: { id: string; kind: string; signed_amount: number; movement_date: string } | null;
+};
+export async function fetchMyAccount(): Promise<MyAccount> {
+  return unwrap(await supabase.from('account_balances').select('account_id, balance').single()) as MyAccount;
+}
+export async function fetchMySummary(accountId: string): Promise<MySummary> {
+  return unwrap(await supabase.rpc('account_summary', { p_account: accountId })) as MySummary;
+}
+export async function fetchMyMovements(): Promise<Movement[]> {
+  return unwrap(await supabase.from('account_movements')
+    .select('id, kind, origin, origin_detail, signed_amount, movement_date, concept, updated_at, machine:machines(name)')
+    .order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(300)) as unknown as Movement[];
 }
