@@ -57,6 +57,13 @@
       "output": "single",
       "favicon": "./assets/favicon.png"
     },
-    "description": "Registro privado del dinero de la familia"
+    "description": "Registro privado del dinero de la familia",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c21b00aa-99a8-4236-a8df-e245165518a7"
+      }
+    },
+    "owner": "johnandresaprado"
   }
 }
