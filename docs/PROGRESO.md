@@ -2,7 +2,7 @@
 
 | Fase | Estado |
 |------|--------|
-| 1. Arquitectura + BD + autenticación | **BD y seguridad: HECHO y probado.** Falta: app Expo con login (siguiente paso) |
+| 1. Arquitectura + BD + autenticación | **BD: HECHO y probado.** App Expo: login, sesión persistente, rutas por rol, recuperar/crear contraseña, cerrar sesión: **código listo (typecheck OK)**; falta probar contra un Supabase real |
 | 2. Cuenta de mamá | pendiente |
 | 3. Cuenta de John | pendiente |
 | 4. Cuenta del hermano | pendiente (misma UI que John) |
@@ -18,3 +18,8 @@
 
 ## Decisión pendiente del dueño
 Ver `docs/ARQUITECTURA.md` §A.3 "Decisiones que debes confirmar".
+
+## Decisiones tomadas con el dueño
+- Plataforma: **Android** (Expo; versión web posible después).
+- Registro: **por invitación por correo**, cada quien crea su contraseña; registro público desactivado.
+- Diseño: seguir `docs/diseno/referencia-pantallas.jpg`.

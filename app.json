@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "AppFamiliar",
+    "slug": "appfamiliar",
+    "scheme": "appfamiliar",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1630",
+    "plugins": ["expo-router"],
+    "android": {
+      "package": "com.appfamiliar.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B1630",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": { "bundler": "metro", "output": "single", "favicon": "./assets/favicon.png" }
+  }
+}
