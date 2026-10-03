@@ -917,10 +917,16 @@ revoke update (read_at) on public.notifications from authenticated;
 drop policy notifications_mark_read on public.notifications;
 
 -- ═════════ 0012_default_machines.sql ═════════
--- AppFamiliar · 0012 · Máquinas iniciales de la familia: Wild y Multiusos (activas).
+-- AppFamiliar · 0012 · Máquinas iniciales de la familia: Wild y Multijuegos (activas).
 -- Mamá puede editarlas, desactivarlas o agregar más desde la app (Ingresos → Ver máquinas).
--- "on conflict do nothing": si ya existen (mismo nombre), no se toca nada.
+-- Es seguro repetirla: si ya existen (mismo nombre), no se toca nada.
+
+-- Si una versión anterior de esta migración creó "Multiusos" por error, se corrige el nombre (conserva su historial).
+update public.machines
+   set name = 'Multijuegos', description = 'Máquina Multijuegos'
+ where lower(btrim(name)) = 'multiusos'
+   and not exists (select 1 from public.machines where lower(btrim(name)) = 'multijuegos');
 
 insert into public.machines (name, description)
-values ('Wild', 'Máquina Wild'), ('Multiusos', 'Máquina Multiusos')
+values ('Wild', 'Máquina Wild'), ('Multijuegos', 'Máquina Multijuegos')
 on conflict (lower(btrim(name))) do nothing;
