@@ -14,3 +14,9 @@ export function parseCOP(text: string): number | null {
   const n = Number(clean);
   return Number.isSafeInteger(n) && n > 0 ? n : null;
 }
+
+// Formatea mientras se escribe: "1250000" → "1.250.000" (acepta cualquier texto y deja solo los dígitos).
+export function formatInput(text: string): string {
+  const digits = text.replace(/[^\d]/g, '').replace(/^0+(?=\d)/, '');
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}

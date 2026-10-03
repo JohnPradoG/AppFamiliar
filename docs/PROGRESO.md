@@ -3,10 +3,10 @@
 | Fase | Estado |
 |------|--------|
 | 1. Arquitectura + BD + autenticación | **BD: HECHO y probado.** App Expo: login, sesión persistente, rutas por rol, recuperar/crear contraseña, cerrar sesión: **código listo (typecheck OK)**; falta probar contra un Supabase real |
-| 2. Cuenta de mamá | **Hecho (parte 1):** dashboard con filtros Hoy/Semana/Mes/Mes anterior/Todo, Cuentas, Máquinas (crear/editar/desactivar/historial). BD `admin_dashboard` probada. Pendiente: filtro "Personalizado", tabs Ingresos/Transferencias/Historial (llegan en Fases 5 y 7) |
+| 2. Cuenta de mamá | **Hecho (parte 1):** dashboard con filtros Hoy/Semana/Mes/Mes anterior/Todo, Cuentas, Máquinas (crear/editar/desactivar/historial). BD `admin_dashboard` probada. Pendiente: filtro "Personalizado"; Historial global con filtros (Fase 7); selector de fecha visual (Fase 9) |
 | 3. Cuenta de John | **Hecho:** Inicio (saldo, total ingresos, total transferencias, último movimiento), Historial (Todos/Ingresos/Transferencias), Mi cuenta (origen del saldo, tocar categoría → detalle). Pendiente: pestaña Comprobantes (Fase 6) y Perfil/Notificaciones |
 | 4. Cuenta del hermano | **Hecho en código** (misma UI que John; cada uno solo recibe su cuenta de la BD). Pruebas de aislamiento en `supabase/tests/30_` y `80_` |
-| 5. Movimientos + saldos + transferencias | **Lógica en BD ya hecha** (RPCs). Falta UI |
+| 5. Movimientos + saldos + transferencias | **Hecho:** pestañas de mamá Inicio · Ingresos · Transferencias · Cuentas · Más; formularios Registrar ingreso (con asignación opcional y distinta por hijo), Agregar saldo (Trabajo/Máquina/Otro/Personalizado), Transferir (aviso si deja saldo negativo); detalle de cuenta con origen del saldo y movimientos. Validaciones con pruebas. Pendiente: adjuntar comprobante (Fase 6) |
 | 6. Comprobantes | **Bucket + políticas en BD hechas.** Falta subida desde la app |
 | 7. Edición + eliminación + auditoría | **En BD hecho** (triggers + RPCs). Falta UI |
 | 8. Seguridad + pruebas | 60+ pruebas de BD/RLS ya corren; falta pruebas de la app |

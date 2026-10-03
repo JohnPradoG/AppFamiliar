@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Amount, Card, Chips, ErrorText, LabelValue, Loading, Muted, ScrollScreen, SectionTitle, Title } from '../../src/components';
+import { Amount, Button, Card, Chips, ErrorText, LabelValue, Loading, Muted, ScrollScreen, SectionTitle, Title } from '../../src/components';
 import { useAuth } from '../../src/features/auth/AuthProvider';
 import { useAsync } from '../../src/hooks/useAsync';
 import { fetchDashboard, friendlyError } from '../../src/lib/api';
@@ -7,6 +8,7 @@ import { PERIODS, periodRange, type PeriodKey } from '../../src/lib/period';
 
 export default function AdminHome() {
   const { profile } = useAuth();
+  const router = useRouter();
   const [period, setPeriod] = useState<PeriodKey>('month');
   const { data, error, loading, reload } = useAsync(() => {
     const { from, to } = periodRange(period);
@@ -16,6 +18,9 @@ export default function AdminHome() {
   return (
     <ScrollScreen refreshing={loading && !!data} onRefresh={reload}>
       <Title>Hola, {profile?.display_name}</Title>
+      <Button label="Registrar ingreso" onPress={() => router.push('/ingresos/nuevo')} />
+      <Button label="Agregar saldo" kind="ghost" onPress={() => router.push('/ingresos/saldo')} />
+      <Button label="Registrar transferencia" kind="ghost" onPress={() => router.push('/transferencias/nueva')} />
       <Chips options={PERIODS} value={period} onChange={setPeriod} />
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}

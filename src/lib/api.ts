@@ -9,8 +9,8 @@ export type Dashboard = {
 };
 export type MachineIncome = { id: string; income_date: string; amount: number; description: string | null };
 
-function unwrap<T>(res: { data: T | null; error: { message: string } | null }): T {
-  if (res.error) throw new Error(res.error.message);
+function unwrap<T>(res: { data: T | null; error: { message: string; code?: string } | null }): T {
+  if (res.error) throw Object.assign(new Error(res.error.message), { code: res.error.code });
   return res.data as T;
 }
 
@@ -32,8 +32,14 @@ export async function fetchMachineIncomes(machineId: string): Promise<MachineInc
     .eq('machine_id', machineId).is('deleted_at', null).order('income_date', { ascending: false }).limit(100)) as MachineIncome[];
 }
 
+export function isInsufficientFunds(e: unknown): boolean {
+  return e instanceof Error && e.message.startsWith('Saldo insuficiente');
+}
+
 export function friendlyError(e: unknown): string {
   const m = e instanceof Error ? e.message : '';
+  // Las reglas de negocio de la base de datos (RAISE EXCEPTION) ya están escritas en español para mamá.
+  if ((e as { code?: string } | null)?.code === 'P0001' && m && !m.startsWith('Saldo insuficiente')) return m;
   if (m.includes('duplicate key') || m.includes('machines_name_unique')) return 'Ya existe una máquina con ese nombre.';
   if (m.includes('No autorizado')) return 'No tiene permiso para esta acción.';
   if (m.toLowerCase().includes('fetch') || m.toLowerCase().includes('network')) return 'Sin conexión. Revise su internet.';
@@ -85,5 +91,40 @@ export async function fetchMySummary(accountId: string): Promise<MySummary> {
 export async function fetchMyMovements(): Promise<Movement[]> {
   return unwrap(await supabase.from('account_movements')
     .select('id, kind, origin, origin_detail, signed_amount, movement_date, concept, updated_at, machine:machines(name)')
+    .order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(300)) as unknown as Movement[];
+}
+
+// ───────── Mamá: registrar dinero (Fase 5) ─────────
+export type Income = {
+  id: string; income_date: string; amount: number; description: string | null;
+  machine: { name: string } | null; allocations: { account_id: string; signed_amount: number; deleted_at: string | null }[];
+};
+export async function fetchIncomes(): Promise<Income[]> {
+  const rows = unwrap(await supabase.from('incomes')
+    .select('id, income_date, amount, description, machine:machines(name), allocations:account_movements(account_id, signed_amount, deleted_at)')
+    .is('deleted_at', null).order('income_date', { ascending: false }).order('created_at', { ascending: false }).limit(100)) as unknown as Income[];
+  return rows.map((r) => ({ ...r, allocations: r.allocations.filter((a) => a.deleted_at === null) }));
+}
+export async function fetchActiveMachines(): Promise<{ id: string; name: string }[]> {
+  return unwrap(await supabase.from('machines').select('id, name').eq('active', true).order('name')) as { id: string; name: string }[];
+}
+export async function registerIncome(v: { machineId: string; amount: number; date: string; description: string | null; allocations: { account_id: string; amount: number }[] }): Promise<void> {
+  unwrap(await supabase.rpc('register_income', { p_machine: v.machineId, p_date: v.date, p_amount: v.amount, p_description: v.description, p_allocations: v.allocations }));
+}
+export async function addBalance(v: { accountId: string; amount: number; date: string; origin: string; detail: string | null; description: string | null }): Promise<void> {
+  unwrap(await supabase.rpc('add_balance', { p_account: v.accountId, p_amount: v.amount, p_date: v.date, p_origin: v.origin, p_origin_detail: v.detail, p_concept: v.description }));
+}
+export async function registerTransfer(v: { accountId: string; amount: number; date: string; concept: string | null }, allowOverdraft = false): Promise<void> {
+  unwrap(await supabase.rpc('register_transfer', { p_account: v.accountId, p_amount: v.amount, p_date: v.date, p_concept: v.concept, p_allow_overdraft: allowOverdraft }));
+}
+export type AdminTransfer = { id: string; account_id: string; signed_amount: number; movement_date: string; concept: string | null };
+export async function fetchTransfers(): Promise<AdminTransfer[]> {
+  return unwrap(await supabase.from('account_movements').select('id, account_id, signed_amount, movement_date, concept')
+    .eq('kind', 'transfer').is('deleted_at', null).order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(100)) as AdminTransfer[];
+}
+export async function fetchAccountMovements(accountId: string): Promise<Movement[]> {
+  return unwrap(await supabase.from('account_movements')
+    .select('id, kind, origin, origin_detail, signed_amount, movement_date, concept, updated_at, machine:machines(name)')
+    .eq('account_id', accountId).is('deleted_at', null)
     .order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(300)) as unknown as Movement[];
 }
