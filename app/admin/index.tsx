@@ -18,10 +18,10 @@ export default function AdminHome() {
   return (
     <ScrollScreen refreshing={loading && !!data} onRefresh={reload}>
       <Title>Hola, {profile?.display_name}</Title>
-      <Button label="Registrar ingreso" onPress={() => router.push('/ingresos/nuevo')} />
-      <Button label="Agregar saldo" kind="ghost" onPress={() => router.push('/ingresos/saldo')} />
-      <Button label="Registrar transferencia" kind="ghost" onPress={() => router.push('/transferencias/nueva')} />
-      <Button label="Ver historial completo" kind="ghost" onPress={() => router.push('/historial')} />
+      <Button label="Registrar ingreso" onPress={() => router.push('/admin/ingresos/nuevo')} />
+      <Button label="Agregar saldo" kind="ghost" onPress={() => router.push('/admin/ingresos/saldo')} />
+      <Button label="Registrar transferencia" kind="ghost" onPress={() => router.push('/admin/transferencias/nueva')} />
+      <Button label="Ver historial completo" kind="ghost" onPress={() => router.push('/admin/historial')} />
       <Chips options={PERIODS} value={period} onChange={setPeriod} />
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}

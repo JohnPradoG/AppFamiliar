@@ -11,7 +11,7 @@
 | 7. Edición + eliminación + auditoría | **Hecho:** Historial de mamá con filtros (período incl. Personalizado, tipo, cuenta, máquina, monto) y orden; exportar CSV; detalle de movimiento (editar con motivo, eliminar con confirmación mostrando tipo/monto/destinatario, comprobantes, registro de cambios con valor anterior/nuevo y quién); editar/eliminar ingreso con su reparto; registrar corrección |
 | 8. Seguridad + pruebas | **Hecho (salvo prueba con Supabase real):** revisión de amenazas (`docs/SEGURIDAD.md`); corregido hueco: un ayudante ya no puede pedir enlaces para otra persona; límites de datos, auditoría inmutable, invariantes de seguridad en la BD (RLS forzada, sin escritura directa, `search_path`), pruebas estáticas de la app, CI en GitHub Actions |
 | 9. Diseño final | **Hecho:** selector de fecha nativo; pantalla Más/Perfil compartida (notificaciones con contador, cambiar contraseña, ayuda, cerrar sesión); Notificaciones (se llenan por trigger); bloqueo opcional con huella/PIN; sesión guardada CIFRADA (SecureStore en trozos); ícono y splash propios; marcar leídas por función (`0011`). Pendiente: notificaciones push reales, pulido visual con tu teléfono |
-| 10. Publicación | pendiente |
+| 10. Publicación | **Preparada:** `eas.json` (APK), permisos mínimos de Android, guías `docs/PUBLICAR.md`, checklist `docs/PRUEBA_FINAL.md`, política de privacidad, página de invitación. **Falta ejecutar** (requiere tus cuentas): crear proyecto Supabase, compilar el APK con EAS, subir la página |
 
 ## Cómo probar la BD
 `bash supabase/tests/run.sh` — levanta Postgres 16 temporal, aplica `supabase/migrations/*`, corre los 8 casos del encargo y reglas extra (sobregiro, soft delete, auditoría, comprobantes, Storage, notificaciones).

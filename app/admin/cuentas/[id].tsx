@@ -35,7 +35,7 @@ export default function DetalleCuenta() {
           </Card>
           <SectionTitle>Movimientos</SectionTitle>
           {data.movements.length === 0 && <Muted>Esta cuenta todavía no tiene movimientos.</Muted>}
-          {data.movements.map((m) => <Card key={m.id} onPress={() => router.push({ pathname: '/historial/[id]', params: { id: m.id } })}><MovementRow m={m} /></Card>)}
+          {data.movements.map((m) => <Card key={m.id} onPress={() => router.push({ pathname: '/admin/historial/[id]', params: { id: m.id } })}><MovementRow m={m} /></Card>)}
         </>
       )}
     </ScrollScreen>

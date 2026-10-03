@@ -12,13 +12,13 @@ export default function Transferencias() {
   return (
     <ScrollScreen refreshing={loading && !!data} onRefresh={reload}>
       <Title>Transferencias</Title>
-      <Button label="Registrar transferencia" onPress={() => router.push('/transferencias/nueva')} />
+      <Button label="Registrar transferencia" onPress={() => router.push('/admin/transferencias/nueva')} />
       <SectionTitle>Últimas transferencias</SectionTitle>
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}
       {data && data.transfers.length === 0 && <Muted>Todavía no hay transferencias.</Muted>}
       {data?.transfers.map((t) => (
-        <Card key={t.id} onPress={() => router.push({ pathname: '/historial/[id]', params: { id: t.id } })}>
+        <Card key={t.id} onPress={() => router.push({ pathname: '/admin/historial/[id]', params: { id: t.id } })}>
           <LabelValue label={`A ${data.names[t.account_id] ?? ''}`}><Amount value={t.signed_amount} tone="negative" size={18} /></LabelValue>
           <Muted>{t.movement_date}{t.concept ? ` · ${t.concept}` : ''}</Muted>
         </Card>

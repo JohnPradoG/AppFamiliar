@@ -9,5 +9,5 @@ export default function Index() {
   if (!session) return <Redirect href="/login" />;
   if (recovering) return <Redirect href="/set-password" />;
   if (!profile) return <Redirect href="/sin-acceso" />;
-  return <Redirect href={profile.role === 'admin' ? '/(admin)' : '/(user)'} />;
+  return <Redirect href={profile.role === 'admin' ? '/admin' : '/user'} />;
 }

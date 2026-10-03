@@ -71,7 +71,7 @@ export default function Historial() {
       {data && <Muted>{list.length} movimiento{list.length === 1 ? '' : 's'}{data.length >= 500 ? ' (se muestran los 500 más recientes: afine los filtros)' : ''}</Muted>}
       {data && list.length > 0 && <Button label="Exportar a Excel (CSV)" kind="ghost" onPress={() => void exportCSV(movementsToCSV(list, names))} />}
       {list.map((m) => (
-        <Card key={m.id} onPress={() => router.push({ pathname: '/historial/[id]', params: { id: m.id } })}>
+        <Card key={m.id} onPress={() => router.push({ pathname: '/admin/historial/[id]', params: { id: m.id } })}>
           <MovementRow m={m} accountName={names[m.account_id ?? '']} />
         </Card>
       ))}

@@ -24,8 +24,8 @@ export function MoreScreen() {
       <Muted>{session?.user.email}{isAdmin ? ' · Administradora' : ''}</Muted>
 
       <Button label={n > 0 ? `Notificaciones (${n} nuevas)` : 'Notificaciones'} onPress={() => router.push('/notificaciones')} />
-      {isAdmin && <Button label="Historial completo" kind="ghost" onPress={() => router.push('/historial')} />}
-      {isAdmin && <Button label="Máquinas" kind="ghost" onPress={() => router.push('/maquinas')} />}
+      {isAdmin && <Button label="Historial completo" kind="ghost" onPress={() => router.push('/admin/historial')} />}
+      {isAdmin && <Button label="Máquinas" kind="ghost" onPress={() => router.push('/admin/maquinas')} />}
       {(isAdmin || profile?.is_helper) && <Button label="Invitar a la familia" kind="ghost" onPress={() => router.push('/familia')} />}
 
       <Card>

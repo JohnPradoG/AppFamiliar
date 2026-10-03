@@ -26,7 +26,7 @@ export default function MiCuenta() {
           </Card>
           <SectionTitle>Origen del saldo</SectionTitle>
           {CATEGORY_ORDER.filter((c) => totals[c] !== 0 || c !== 'correction').map((c) => (
-            <Card key={c} onPress={() => router.push({ pathname: '/cuenta/[categoria]', params: { categoria: c } })}>
+            <Card key={c} onPress={() => router.push({ pathname: '/user/cuenta/[categoria]', params: { categoria: c } })}>
               <LabelValue label={`${CATEGORY_LABEL[c]} ›`}>
                 <Amount value={totals[c]} tone={totals[c] < 0 ? 'negative' : 'positive'} size={18} />
               </LabelValue>

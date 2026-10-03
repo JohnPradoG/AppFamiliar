@@ -22,7 +22,7 @@ export default function UserHome() {
       {!data && loading ? <Loading /> : null}
       {data && (
         <>
-          <Card onPress={() => router.push('/cuenta')}>
+          <Card onPress={() => router.push('/user/cuenta')}>
             <Muted>Saldo actual</Muted>
             <Amount value={data.acc.balance} tone={data.acc.balance < 0 ? 'negative' : 'positive'} size={36} />
             <Muted>Toca para ver de dónde viene tu saldo ›</Muted>
@@ -35,7 +35,7 @@ export default function UserHome() {
           </Card>
 
           <SectionTitle>Último movimiento</SectionTitle>
-          <Card onPress={() => router.push('/historial')}>
+          <Card onPress={() => router.push('/user/historial')}>
             {data.summary.last_movement ? (
               <LabelValue label={data.summary.last_movement.movement_date}>
                 <Amount value={data.summary.last_movement.signed_amount} tone={data.summary.last_movement.signed_amount > 0 ? 'positive' : 'negative'} size={18} />

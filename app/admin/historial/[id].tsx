@@ -95,7 +95,7 @@ export default function DetalleMovimiento() {
       {!deleted && m.income_id && (
         <Card>
           <Muted>Este movimiento viene de un ingreso de máquina. Para cambiar el monto o el reparto, edite el ingreso.</Muted>
-          <Button label="Editar el ingreso" onPress={() => router.push({ pathname: '/ingresos/[id]', params: { id: m.income_id! } })} />
+          <Button label="Editar el ingreso" onPress={() => router.push({ pathname: '/admin/ingresos/[id]', params: { id: m.income_id! } })} />
         </Card>
       )}
       {!deleted && !m.income_id && <EditForm m={m} onSaved={() => router.back()} />}

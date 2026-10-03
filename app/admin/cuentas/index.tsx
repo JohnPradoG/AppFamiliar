@@ -13,7 +13,7 @@ export default function Cuentas() {
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}
       {data?.accounts.map((a) => (
-        <Card key={a.account_id} onPress={() => router.push({ pathname: '/cuentas/[id]', params: { id: a.account_id } })}>
+        <Card key={a.account_id} onPress={() => router.push({ pathname: '/admin/cuentas/[id]', params: { id: a.account_id } })}>
           <Title>{a.display_name} ›</Title>
           <LabelValue label="Saldo actual"><Amount value={a.balance} tone={a.balance < 0 ? 'negative' : 'positive'} size={26} /></LabelValue>
           <LabelValue label="Total asignado"><Amount value={a.assigned} size={16} /></LabelValue>

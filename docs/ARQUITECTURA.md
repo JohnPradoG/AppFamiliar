@@ -137,7 +137,7 @@ supabase/
   migrations/0001..0005       esquema, RLS, triggers, RPC, storage
   seed/provision_family.sql   crea perfiles + cuentas (una vez)
   tests/                      run.sh + casos 1–8 + reglas extra
-app/                          (Fase 1b+) Expo: app/(auth) (admin) (user), src/{lib,components,features}
+app/                          (Fase 1b+) Expo: app/(auth) · app/admin · app/user, src/{lib,components,features}
 ```
 
 ## H. Plan por fases
@@ -151,3 +151,13 @@ app/                          (Fase 1b+) Expo: app/(auth) (admin) (user), src/{l
 8. **Seguridad + pruebas** — pruebas de la app, revisión de RLS con proyecto Supabase real.
 9. **Diseño final** — tema navy, animaciones, estados vacíos, rendimiento.
 10. **Publicación** — EAS Build, iconos, política de privacidad, TestFlight/APK interno.
+
+---
+## Cambios respecto al diseño inicial (estado final)
+- **Navegación de mamá:** 5 pestañas (Inicio · Ingresos · Transferencias · Cuentas · Más), siguiendo la imagen de referencia; Máquinas e Historial se abren desde Ingresos/Inicio/Más.
+- **Navegación del hijo:** Inicio · Historial · Comprobantes · Más; "Mi cuenta" es el detalle del saldo.
+- **Familia flexible:** ya no son solo "John" y "Hermano": mamá agrega, renombra y quita personas (migración `0009`); "quitar" desactiva y conserva el historial.
+- **Registro:** invitación de un solo enlace y un solo uso (Edge Functions `invite-member` y `accept-invite`, tabla `invitations`).
+- **Ayudante de invitaciones:** rol opcional (`profiles.is_helper`) que no ve dinero.
+- **Escritura:** los clientes no tienen ningún permiso de escritura sobre tablas; todo pasa por funciones RPC.
+- **Seguridad:** ver `docs/SEGURIDAD.md`. **Publicación:** ver `docs/PUBLICAR.md`.
