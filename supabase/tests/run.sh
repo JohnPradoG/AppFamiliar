@@ -10,7 +10,7 @@ if [ "$(id -u)" = 0 ]; then
   chown postgres "$DIR"; RUN=(su postgres -c)
 else RUN=(bash -c); fi
 run() { "${RUN[@]}" "$1"; }
-run "$PGBIN/initdb -D $DIR/data -A trust >/dev/null"
+run "$PGBIN/initdb -D $DIR/data -U postgres -A trust >/dev/null"
 run "$PGBIN/pg_ctl -D $DIR/data -o '-p $PORT -k $DIR' -l $DIR/log -w start >/dev/null"
 trap 'run "$PGBIN/pg_ctl -D $DIR/data -m immediate stop >/dev/null" || true; rm -rf "$DIR"' EXIT
 PSQL=(psql -h "$DIR" -p $PORT -U postgres -v ON_ERROR_STOP=1 -q -X)
