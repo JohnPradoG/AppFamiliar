@@ -1,18 +1,10 @@
-# Config local de Supabase CLI. En producción, aplicar lo mismo en el panel (ver README).
+# Config de Supabase CLI / integración con GitHub.
+# OJO: aquí NO se declara [auth]: los ajustes de autenticación (registro público, redirecciones, correo) se manejan
+# a mano en el panel (docs/PUBLICAR.md §A), para que un despliegue desde GitHub nunca los sobrescriba por accidente.
 project_id = "appfamiliar"
-
-[auth]
-enable_signup = false                      # nadie puede registrarse solo: únicamente quien mamá invite
-minimum_password_length = 8
-additional_redirect_urls = ["appfamiliar://set-password"]   # a dónde vuelve el enlace de invitación
-
-[auth.email]
-enable_signup = false
-enable_confirmations = false
-otp_expiry = 86400                         # el enlace de invitación dura 24 h
 
 [functions.invite-member]
 verify_jwt = true                          # solo usuarios con sesión; además la función exige ser mamá
 
 [functions.accept-invite]
-verify_jwt = false                         # pública: la seguridad es el código de un solo uso
+verify_jwt = false                         # pública a propósito: la protege el código de un solo uso y el límite de intentos

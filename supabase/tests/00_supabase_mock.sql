@@ -12,3 +12,9 @@ create table storage.objects (id uuid primary key default gen_random_uuid(), buc
 alter table storage.objects enable row level security;
 grant usage on schema storage to authenticated;
 grant select, insert, update, delete on storage.objects to authenticated;
+
+-- Supabase da por defecto TODOS los permisos sobre lo nuevo en "public" a anon, authenticated y service_role.
+-- Se replica aquí para que las pruebas demuestren que nuestras migraciones los cierran como corresponde.
+alter default privileges in schema public grant all on tables    to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;

@@ -2,22 +2,27 @@
 
 Todo es gratis. Lo hace **una sola persona** (quien administra el proyecto). Orden recomendado:
 
-## A. Supabase (todo desde el panel, sin instalar nada · ~10 minutos)
-Proyecto ya creado: **https://jkysgjmrwsmmhnlhfezl.supabase.co** (Project URL y llave *publishable*, que son públicas por diseño y van en la app).
+## A. Supabase conectado a GitHub (la base y las funciones se cargan solas)
+Proyecto: **https://jkysgjmrwsmmhnlhfezl.supabase.co** · Repositorio: `JohnPradoG/AppFamiliar`.
 
-1. **SQL Editor → New query:** abrir `supabase/setup_all.sql`, copiar TODO, pegar y tocar **Run**. Debe terminar sin errores (si sale un error, copiar el mensaje). Esto crea tablas, seguridad y las máquinas **Wild** y **Máquina Multijuegos**.
-   **Comprobar:** en otra consulta nueva pegar `supabase/verify_setup.sql` → Run. Todas las filas deben decir **OK**, excepto "Mamá ya está dada de alta" (última), que dirá FALLA hasta el paso 4. Si otra dice FALLA, copiar la tabla completa de resultados.
-2. **Authentication → Sign In / Providers → Email:** desactivar **"Allow new users to sign up"** y **"Confirm email"** (las cuentas se crean solo por invitación).
-3. **Authentication → URL Configuration → Redirect URLs:** agregar `appfamiliar://set-password` (solo lo usa "Olvidé mi contraseña").
-4. **Mamá:** Authentication → Users → *Add user → Send invitation* con su correo; ella abre el enlace que le llega y crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` cambiando el correo por el de mamá.
-5. **Funciones de invitación:** *Edge Functions → Deploy a new function → Via Editor*.
-   - Nombre `invite-member`: pegar TODO `supabase/bundled/invite-member.ts` → Deploy. (Dejar activada la verificación de JWT.)
-   - Nombre `accept-invite`: pegar TODO `supabase/bundled/accept-invite.ts` → Deploy → en sus ajustes **desactivar "Verify JWT"** (es pública a propósito: la protege el código de un solo uso).
-   - Supabase les inyecta solas la URL y la llave secreta; no hay que copiarlas.
-6. **Página de invitación** (sección C) y luego en *Edge Functions → Secrets* agregar `INVITE_BASE_URL` con su dirección y volver a desplegar `invite-member`.
+**A.1 — Integración (una sola vez, en el panel):** *Project Settings → Integrations → GitHub*:
+- Repositorio: `JohnPradoG/AppFamiliar` · carpeta de Supabase: **`supabase`** · rama de producción: **`ccr-b29f5c1d-yjcyes`** (la única rama que existe; si algún día se crea `main`, cambiar aquí).
+- **Deploy to production: activado.** (Las ramas de vista previa/branching requieren plan Pro: dejarlo apagado.)
 
-> **Llaves:** la **publishable** (`sb_publishable_…`) y la URL van en la app. La **secret** (`sb_secret_…`) NUNCA se pega en la app, en el repositorio ni en un chat: solo vive dentro de Supabase. Si alguna vez se expone, se rota en *Project Settings → API Keys*.
-> Los archivos de `supabase/bundled/` se regeneran con `npm run functions:bundle` si cambia el código de las funciones. El paquete `@supabase/server` no hace falta: las funciones usan `supabase-js`, que ya funciona.
+**A.2 — Qué pasa en cada push a la rama de producción:** Supabase aplica las migraciones nuevas de `supabase/migrations/` y despliega las funciones de `supabase/functions/` (con la verificación de JWT que dicen `supabase/config.toml`).
+- **No pegar `setup_all.sql` a mano** si la integración ya lo aplicó: duplicaría todo y daría errores. `setup_all.sql` queda solo como plan B para quien NO use GitHub.
+- Las migraciones ya aplicadas **no se editan nunca**; los cambios se agregan como migraciones nuevas.
+
+**A.3 — Comprobar que cargó:** *Database → Migrations* debe listar `0001` … `0013` como aplicadas. Luego, en **SQL Editor**, pegar `supabase/verify_setup.sql` → Run: todas las filas **OK**, excepto "Mamá ya está dada de alta" (hasta el paso A.5). Si algo falla, copiar el mensaje (de *Migrations* o de la tabla de resultados).
+
+**A.4 — Ajustes de autenticación (a mano, una vez):** *Authentication → Sign In / Providers → Email*: desactivar **"Allow new users to sign up"** y **"Confirm email"**. *URL Configuration → Redirect URLs*: agregar `appfamiliar://set-password`.
+
+**A.5 — Mamá:** *Authentication → Users → Add user → Send invitation* con su correo; ella crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` cambiando el correo por el de mamá. Volver a correr `verify_setup.sql`: todo **OK**.
+
+**A.6 — Página de invitación** (sección C) y luego *Edge Functions → Secrets*: agregar `INVITE_BASE_URL` con su dirección (después, redesplegar `invite-member`: basta cualquier push que toque la función, o "Redeploy" en el panel).
+
+> **Plan B sin GitHub:** pegar `supabase/setup_all.sql` en el SQL Editor y pegar a mano `supabase/bundled/*.ts` en *Edge Functions → Via Editor* (en `accept-invite`, desactivar "Verify JWT").
+> **Llaves:** la **publishable** (`sb_publishable_…`) y la URL van en la app. La **secret** (`sb_secret_…`) NUNCA se pega en la app, el repositorio ni un chat; se rota en *Project Settings → API Keys*.
 
 ## B. Compilar la app (APK)
 1. Cuenta gratuita en expo.dev. En el proyecto: `npm install` y `npx eas-cli login` y `npx eas-cli init`.
