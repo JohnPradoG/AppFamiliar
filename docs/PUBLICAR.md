@@ -3,7 +3,7 @@
 Todo es gratis. Lo hace **una sola persona** (quien administra el proyecto). Orden recomendado:
 
 ## A. Supabase (todo desde el panel, sin instalar nada · ~10 minutos)
-Proyecto ya creado: **https://igytuhqidvlldngaouhe.supabase.co** (Project URL y llave *publishable*, que son públicas por diseño y van en la app).
+Proyecto ya creado: **https://jkysgjmrwsmmhnlhfezl.supabase.co** (Project URL y llave *publishable*, que son públicas por diseño y van en la app).
 
 1. **SQL Editor → New query:** abrir `supabase/setup_all.sql`, copiar TODO, pegar y tocar **Run**. Debe terminar sin errores (si sale un error, copiar el mensaje). Esto crea tablas, seguridad y las máquinas **Wild** y **Máquina Multijuegos**.
 2. **Authentication → Sign In / Providers → Email:** desactivar **"Allow new users to sign up"** y **"Confirm email"** (las cuentas se crean solo por invitación).
@@ -22,7 +22,7 @@ Proyecto ya creado: **https://igytuhqidvlldngaouhe.supabase.co** (Project URL y 
 1. Cuenta gratuita en expo.dev. En el proyecto: `npm install` y `npx eas-cli login` y `npx eas-cli init`.
 2. Variables públicas para la compilación:
    ```
-   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://igytuhqidvlldngaouhe.supabase.co --visibility plaintext --environment preview --environment production
+   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://jkysgjmrwsmmhnlhfezl.supabase.co --visibility plaintext --environment preview --environment production
    npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <la llave publishable sb_publishable_…> --visibility plaintext --environment preview --environment production
    ```
 3. `npx eas-cli build -p android --profile preview` → al terminar da un enlace para **descargar el APK**.
