@@ -88,3 +88,12 @@ export function validateCorrection(i: CorrectionInput): Result<CorrectionValue> 
   if (!i.concept.trim()) return fail('Explique por qué se hace la corrección.');
   return { ok: true, value: { accountId: i.accountId, signedAmount: i.negative ? -amount : amount, date, concept: i.concept.trim() } };
 }
+
+// Saldo inicial: puede ser 0 (campo vacío), positivo o negativo.
+export function validateOpening(i: { amountText: string; negative: boolean }): Result<{ amount: number }> {
+  const t = i.amountText.trim();
+  if (!t) return { ok: true, value: { amount: 0 } };
+  const n = parseCOP(t);
+  if (n === null) return t.replace(/[^\d]/g, '').replace(/^0+$/, '') === '' && /\d/.test(t) ? { ok: true, value: { amount: 0 } } : fail('Escriba un monto válido.');
+  return { ok: true, value: { amount: i.negative ? -n : n } };
+}

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { generateCode, hashCode } from '../_shared/token.ts';
-import { handleAccept, type AcceptDeps, type Invitation } from './handler.ts';
+import { handleAccept, MAX_FAILURES, type AcceptDeps, type Invitation } from './handler.ts';
 
 const inv: Invitation = { id: 'i1', owner_key: 'john', kind: 'new', email: 'j@x.com', display_name: 'John', created_by: 'mama' };
 
@@ -9,9 +9,12 @@ const inv: Invitation = { id: 'i1', owner_key: 'john', kind: 'new', email: 'j@x.
 function mk(over: Partial<AcceptDeps> = {}, invitation: Invitation = inv) {
   const calls: string[] = [];
   let used = false;
+  let failures = 0;
   const code = generateCode();
   const d: AcceptDeps = {
     hashCode,
+    recentFailures: async () => failures,
+    recordFailure: async () => { failures++; calls.push('fail'); },
     claim: async (h) => { if (used || h !== (await hashCode(code))) return null; used = true; return invitation; },
     release: async () => { used = false; calls.push('release'); },
     findMember: async () => ({ userId: 'u-john' }),
@@ -34,7 +37,7 @@ test('crea la cuenta con la contraseña elegida', async () => {
   const r = await handleAccept({ code, password: 'clave-segura' }, d);
   assert.equal(r.status, 200);
   assert.equal(r.json.email, 'j@x.com');
-  assert.deepEqual(calls, ['create:j@x.com', 'member:u1:john:John:mama']);
+  assert.deepEqual(calls, ['create:j@x.com', 'member:u1:john:John:mama']);   // sin fallos registrados
 });
 test('UN SOLO USO: el segundo intento con el mismo código falla', async () => {
   const { d, code } = mk();
@@ -47,6 +50,18 @@ test('código inventado o mal formado → 410 sin tocar la BD', async () => {
   assert.equal((await handleAccept({ code: 'corto', password: 'clave-segura' }, d)).status, 410);
   assert.equal(touched, false);
   assert.equal((await handleAccept({ code: generateCode(), password: 'clave-segura' }, d)).status, 410);
+});
+test('LÍMITE: tras muchos intentos fallidos se bloquea, incluso con un código bueno', async () => {
+  const { d, code } = mk();
+  for (let i = 0; i < MAX_FAILURES; i++) assert.equal((await handleAccept({ code: generateCode(), password: 'clave-segura' }, d)).status, 410);
+  const r = await handleAccept({ code, password: 'clave-segura' }, d);
+  assert.equal(r.status, 429);
+});
+test('los intentos fallidos se registran (código mal formado e inventado)', async () => {
+  const { d, calls } = mk();
+  await handleAccept({ code: 'corto', password: 'clave-segura' }, d);
+  await handleAccept({ code: generateCode(), password: 'clave-segura' }, d);
+  assert.deepEqual(calls, ['fail', 'fail']);
 });
 test('contraseña débil → 400 y NO gasta el código', async () => {
   const { d, code } = mk();

@@ -8,6 +8,7 @@ export type AuditEntry = {
 export type AuditTable = 'account_movements' | 'incomes';
 
 const ACTION_TITLE = { insert: 'Creado', update: 'Modificado', delete: 'Eliminado' } as const;
+export const RESTORED = 'Restaurado';
 
 // Convierte una fila de audit_logs en texto para mamá: "Monto: -$50.000 → -$80.000".
 export function describeAudit(e: AuditEntry, table: AuditTable): { title: string; lines: string[] } {
@@ -23,6 +24,10 @@ export function describeAudit(e: AuditEntry, table: AuditTable): { title: string
     if (n[textKey]) lines.push(`${table === 'incomes' ? 'Observación' : 'Concepto'}: ${String(n[textKey])}`);
   } else if (e.action === 'delete') {
     lines.push(`Monto: ${money(o[amountKey])}`);
+  } else if (o.deleted_at && !n.deleted_at) {
+    lines.push(`Monto: ${money(n[amountKey])}`);
+    if (e.reason) lines.push(`Motivo: ${e.reason}`);
+    return { title: RESTORED, lines };
   } else {
     if (o[amountKey] !== n[amountKey]) lines.push(`Monto: ${money(o[amountKey])} → ${money(n[amountKey])}`);
     if (o[dateKey] !== n[dateKey]) lines.push(`Fecha: ${String(o[dateKey] ?? '—')} → ${String(n[dateKey] ?? '—')}`);

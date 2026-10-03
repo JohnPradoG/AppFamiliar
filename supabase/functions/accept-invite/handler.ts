@@ -2,7 +2,11 @@ import { CODE_RE } from '../_shared/token.ts';
 
 export type Invitation = { id: string; owner_key: string; kind: 'new' | 'reset'; email: string; display_name: string; created_by: string | null };
 
+export const MAX_FAILURES = 20;   // intentos fallidos permitidos en la ventana (10 min); la familia es pequeña, un uso legítimo casi nunca falla
+
 export type AcceptDeps = {
+  recentFailures(): Promise<number>;     // fallos en los últimos 10 minutos
+  recordFailure(): Promise<void>;
   hashCode(code: string): Promise<string>;
   claim(hash: string): Promise<Invitation | null>;      // atómico: marca used_at solo si estaba vigente y sin usar
   release(id: string): Promise<void>;                   // deshace el canje si algo falla
@@ -14,6 +18,7 @@ export type AcceptDeps = {
 };
 
 export type Result = { status: number; json: Record<string, unknown> };
+const TOO_MANY: Result = { status: 429, json: { error: 'Demasiados intentos. Espere unos minutos e intente de nuevo.' } };
 const INVALID: Result = { status: 410, json: { error: 'La invitación no es válida, venció o ya fue usada. Pídale a mamá una nueva.' } };
 
 // Pública (sin sesión): la seguridad es el código (128 bits, un solo uso, 7 días).
@@ -21,11 +26,12 @@ export async function handleAccept(body: unknown, d: AcceptDeps): Promise<Result
   const b = (body ?? {}) as Record<string, unknown>;
   const code = typeof b.code === 'string' ? b.code.trim() : '';
   const password = typeof b.password === 'string' ? b.password : '';
-  if (!CODE_RE.test(code)) return INVALID;                       // formato inválido: ni siquiera se consulta la BD
+  if ((await d.recentFailures()) >= MAX_FAILURES) return TOO_MANY;   // freno global contra adivinar códigos
+  if (!CODE_RE.test(code)) { await d.recordFailure(); return INVALID; }   // formato inválido: no se consulta la tabla de invitaciones
   if (password.length < 8 || password.length > 72) return { status: 400, json: { error: 'La contraseña debe tener entre 8 y 72 caracteres.' } };
 
   const inv = await d.claim(await d.hashCode(code));
-  if (!inv) return INVALID;
+  if (!inv) { await d.recordFailure(); return INVALID; }
 
   try {
     if (inv.kind === 'reset') {

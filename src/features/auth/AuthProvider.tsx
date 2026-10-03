@@ -24,13 +24,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
   const [recovering, setRecovering] = useState(false);
 
   const loadProfile = useCallback(async (s: Session | null) => {
-    if (!s) return setProfile(null);
-    // RLS: solo devuelve el perfil del propio usuario (o todos si es mamá; por eso se filtra por id).
-    const { data } = await supabase.from('profiles').select('id, role, display_name, is_helper').eq('id', s.user.id).maybeSingle();
-    setProfile((data as Profile | null) ?? null);
+    if (!s) { setProfile(null); setProfileLoading(false); return; }
+    setProfileLoading(true);
+    try {
+      // RLS: solo devuelve el perfil del propio usuario (o todos si es mamá; por eso se filtra por id).
+      const { data } = await supabase.from('profiles').select('id, role, display_name, is_helper').eq('id', s.user.id).maybeSingle();
+      setProfile((data as Profile | null) ?? null);
+    } finally {
+      setProfileLoading(false);   // mientras carga el perfil, la app sigue "cargando" (no decide a dónde ir con el perfil vacío)
+    }
   }, []);
 
   // Enlaces de invitación / recuperación (Android abre appfamiliar://...#access_token=...&refresh_token=...).
@@ -54,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
+      if (s) setProfileLoading(true);   // sin hueco entre "hay sesión" y "perfil cargando"
       if (event === 'PASSWORD_RECOVERY') setRecovering(true);
       // No hacer llamadas a supabase dentro del callback (puede bloquear): se difiere.
       setTimeout(() => void loadProfile(s), 0);
@@ -63,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadProfile, handleUrl]);
 
   const value = useMemo<AuthState>(() => ({
-    loading, session, profile, recovering,
+    loading: loading || profileLoading, session, profile, recovering,
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
       return error ? translateAuthError(error.message) : null;
@@ -79,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setRecovering(false);
       return null;
     },
-  }), [loading, session, profile, recovering]);
+  }), [loading, profileLoading, session, profile, recovering]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

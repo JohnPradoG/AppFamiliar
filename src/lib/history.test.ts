@@ -27,6 +27,12 @@ test('CSV: comillas escapadas, BOM, estado', () => {
   assert.ok(csv.includes('"John"') && csv.includes('"Eliminado"'));
   assert.equal(csv.split('\r\n').length, 2);
 });
+test('auditoría: restauración', () => {
+  const e = { id: 9, action: 'update' as const, old_data: { signed_amount: -1000, deleted_at: '2026-10-04T00:00:00Z' }, new_data: { signed_amount: -1000, deleted_at: null }, reason: 'era correcto', actor_id: 'm', at: '2026-10-05T00:00:00Z' };
+  const d = describeAudit(e, 'account_movements');
+  assert.equal(d.title, 'Restaurado');
+  assert.deepEqual(d.lines, ['Monto: -$1.000', 'Motivo: era correcto']);
+});
 test('auditoría: valor anterior y nuevo, y motivo', () => {
   const e = { id: 1, action: 'update' as const, old_data: { signed_amount: -50000, concept: 'a', movement_date: '2026-10-03' }, new_data: { signed_amount: -80000, concept: 'a', movement_date: '2026-10-03' }, reason: 'Error de digitación', actor_id: 'm', at: '2026-10-03T10:00:00Z' };
   const d = describeAudit(e, 'account_movements');

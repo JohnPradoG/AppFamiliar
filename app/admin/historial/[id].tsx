@@ -7,7 +7,7 @@ import { AmountField, DateField } from '../../../src/features/FormParts';
 import { ReceiptPicker } from '../../../src/features/ReceiptPicker';
 import { ReceiptCard } from '../../../src/features/ReceiptList';
 import { useAsync } from '../../../src/hooks/useAsync';
-import { deleteMovement, deleteReceipt, fetchAccountNames, fetchAudit, fetchMovement, fetchMovementReceipts, fetchProfileNames, friendlyError, updateMovement, uploadReceipt, type AdminMovement, type PickedFile } from '../../../src/lib/api';
+import { deleteMovement, deleteReceipt, restoreMovement, fetchAccountNames, fetchAudit, fetchMovement, fetchMovementReceipts, fetchProfileNames, friendlyError, updateMovement, uploadReceipt, type AdminMovement, type PickedFile } from '../../../src/lib/api';
 import { validateMovementEdit } from '../../../src/lib/forms';
 import { formatCOP, formatInput } from '../../../src/lib/money';
 import { CATEGORY_LABEL, categoryOf, movementTitle } from '../../../src/lib/movements';
@@ -91,6 +91,23 @@ export default function DetalleMovimiento() {
         <Muted>Fecha: {m.movement_date}{m.concept ? ` · ${m.concept}` : ''}</Muted>
         {deleted && <ErrorText>Este movimiento fue eliminado y ya no cuenta en el saldo.</ErrorText>}
       </Card>
+
+      {deleted && (m.income_id ? (
+        <Card>
+          <Muted>Viene de un ingreso de máquina: para restaurarlo, restaure el ingreso.</Muted>
+          <Button label="Ir al ingreso" onPress={() => router.push({ pathname: '/admin/ingresos/[id]', params: { id: m.income_id! } })} />
+        </Card>
+      ) : (
+        <Card>
+          <Muted>Si fue un error, puede restaurarlo: vuelve a contar en el saldo y queda en el registro.</Muted>
+          <Field placeholder="Motivo (opcional)" value={reason} onChangeText={setReason} />
+          <Button label="Restaurar movimiento" busy={busy} onPress={async () => {
+            setBusy(true); setError(null);
+            try { await restoreMovement(m.id, reason.trim() || null); reload(); } catch (e) { setError(friendlyError(e)); }
+            setBusy(false);
+          }} />
+        </Card>
+      ))}
 
       {!deleted && m.income_id && (
         <Card>

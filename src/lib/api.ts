@@ -255,3 +255,14 @@ export async function fetchUnreadCount(): Promise<number> {
 export async function markNotificationsRead(): Promise<void> {
   unwrap(await supabase.rpc('mark_notifications_read'));
 }
+
+// ───────── Restaurar y saldo inicial ─────────
+export async function restoreMovement(id: string, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('restore_movement', { p_id: id, p_reason: reason }));
+}
+export async function restoreIncome(id: string, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('restore_income', { p_id: id, p_reason: reason }));
+}
+export async function setOpeningBalance(accountId: string, amount: number, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('set_opening_balance', { p_account: accountId, p_amount: amount, p_reason: reason }));
+}

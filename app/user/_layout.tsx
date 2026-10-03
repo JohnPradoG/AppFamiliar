@@ -1,4 +1,5 @@
 import { Redirect, Tabs } from 'expo-router';
+import { Text } from 'react-native';
 import { Loading } from '../../src/components';
 import { useAuth } from '../../src/features/auth/AuthProvider';
 import { colors } from '../../src/lib/theme';
@@ -10,12 +11,12 @@ export default function UserLayout() {
   if (!session) return <Redirect href="/login" />;
   if (profile?.role !== 'user') return <Redirect href="/" />;
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border }, tabBarActiveTintColor: colors.info, tabBarInactiveTintColor: colors.muted }}>
-      <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
-      <Tabs.Screen name="historial" options={{ title: 'Historial' }} />
-      <Tabs.Screen name="comprobantes" options={{ title: 'Comprobantes' }} />
+    <Tabs screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border }, tabBarActiveTintColor: colors.info, tabBarInactiveTintColor: colors.muted, tabBarLabelStyle: { fontSize: 10 } }}>
+      <Tabs.Screen name="index" options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>🏠</Text>, title: 'Inicio' }} />
+      <Tabs.Screen name="historial" options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>📜</Text>, title: 'Historial' }} />
+      <Tabs.Screen name="comprobantes" options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>🧾</Text>, title: 'Comprobantes' }} />
       <Tabs.Screen name="cuenta" options={{ href: null }} />
-      <Tabs.Screen name="mas" options={{ title: 'Más' }} />
+      <Tabs.Screen name="mas" options={{ tabBarIcon: () => <Text style={{ fontSize: 18 }}>☰</Text>, title: 'Más' }} />
     </Tabs>
   );
 }

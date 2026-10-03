@@ -78,3 +78,12 @@ test('corrección: signo y explicación obligatoria', () => {
   assert.equal(validateCorrection({ ...base, concept: ' ' }).ok, false);
   assert.equal(validateCorrection({ ...base, accountId: null }).ok, false);
 });
+
+import { validateOpening } from './forms.ts';
+test('saldo inicial: vacío o 0 es válido; admite signo', () => {
+  assert.deepEqual(validateOpening({ amountText: '', negative: false }), { ok: true, value: { amount: 0 } });
+  assert.deepEqual(validateOpening({ amountText: '0', negative: true }), { ok: true, value: { amount: 0 } });
+  assert.deepEqual(validateOpening({ amountText: '50.000', negative: false }), { ok: true, value: { amount: 50000 } });
+  assert.deepEqual(validateOpening({ amountText: '50.000', negative: true }), { ok: true, value: { amount: -50000 } });
+  assert.equal(validateOpening({ amountText: 'abc', negative: false }).ok, false);
+});

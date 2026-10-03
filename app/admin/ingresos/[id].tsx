@@ -5,7 +5,7 @@ import { Button, ErrorText, Field, Loading, Muted, ScrollScreen, SectionTitle } 
 import { AuditList } from '../../../src/features/AuditList';
 import { AmountField, DateField } from '../../../src/features/FormParts';
 import { useAsync } from '../../../src/hooks/useAsync';
-import { deleteIncome, fetchAudit, fetchDashboard, fetchIncome, fetchProfileNames, friendlyError, updateIncome, type DashboardAccount, type IncomeDetail } from '../../../src/lib/api';
+import { deleteIncome, restoreIncome, fetchAudit, fetchDashboard, fetchIncome, fetchProfileNames, friendlyError, updateIncome, type DashboardAccount, type IncomeDetail } from '../../../src/lib/api';
 import { validateIncome } from '../../../src/lib/forms';
 import { formatCOP, formatInput } from '../../../src/lib/money';
 
@@ -56,7 +56,8 @@ function IncomeForm({ income, accounts, onDone }: { income: IncomeDetail; accoun
 export default function EditarIngreso() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { data, error } = useAsync(async () => {
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const { data, error, reload } = useAsync(async () => {
     const [income, dash, audit, actors] = await Promise.all([fetchIncome(id), fetchDashboard(null, null), fetchAudit('incomes', id), fetchProfileNames()]);
     return { income, accounts: dash.accounts, audit, actors };
   }, [id]);
@@ -64,7 +65,14 @@ export default function EditarIngreso() {
     <ScrollScreen>
       <Stack.Screen options={{ title: 'Ingreso de máquina' }} />
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
-      {!data ? <Loading /> : data.income.deleted_at ? <ErrorText>Este ingreso fue eliminado.</ErrorText> : (
+      {!data ? <Loading /> : data.income.deleted_at ? (
+        <>
+          <ErrorText>Este ingreso fue eliminado: ya no cuenta en ningún saldo.</ErrorText>
+          <Muted>Si fue un error, puede restaurarlo con su reparto original (lo que se quitó antes al editar no se revive).</Muted>
+          {restoreError && <ErrorText>{restoreError}</ErrorText>}
+          <Button label="Restaurar ingreso" onPress={async () => { try { await restoreIncome(id, null); setRestoreError(null); reload(); } catch (e) { setRestoreError(friendlyError(e)); } }} />
+        </>
+      ) : (
         <IncomeForm income={data.income} accounts={data.accounts} onDone={() => router.back()} />
       )}
       {data && <AuditList entries={data.audit} table="incomes" actors={data.actors} />}

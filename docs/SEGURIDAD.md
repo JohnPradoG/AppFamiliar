@@ -23,7 +23,7 @@
 - **Teléfono perdido o desbloqueado:** la sesión queda guardada en el equipo. Mitigación: bloqueo con huella/PIN (Más → Bloqueo de la app) y cerrar sesión. Pendiente de endurecer: guardar la sesión cifrada (SecureStore).
 - **Plan gratuito de Supabase:** sin copias de seguridad automáticas. Exportar el historial (CSV) periódicamente o pasar al plan Pro.
 - **Contraseñas filtradas:** la verificación contra listas de contraseñas filtradas es del plan Pro; mínimo de 8 caracteres configurado.
-- **Limitación de intentos:** Supabase limita inicios de sesión; el canje de invitaciones se protege con el tamaño del código (no es adivinable).
+- **Limitación de intentos:** Supabase limita inicios de sesión; el canje de invitaciones se protege con el tamaño del código (128 bits) y un freno global (más de 20 fallos en 10 min bloquea el canje).
 
 ## Cómo correr las pruebas de seguridad
 `npm test` (app y funciones) · `npm run test:db` (RLS, permisos e invariantes en Postgres real).

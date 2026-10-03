@@ -7,6 +7,16 @@ const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE
 
 const deps: AcceptDeps = {
   hashCode,
+  async recentFailures() {
+    const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count } = await admin.from('invite_failures').select('id', { count: 'exact', head: true }).gte('at', since);
+    return count ?? 0;
+  },
+  async recordFailure() {
+    await admin.from('invite_failures').insert({});
+    // limpieza ocasional de registros viejos
+    if (Math.random() < 0.05) await admin.from('invite_failures').delete().lt('at', new Date(Date.now() - 24 * 3600 * 1000).toISOString());
+  },
   async claim(hash) {
     const { data } = await admin.from('invitations')
       .update({ used_at: new Date().toISOString() })

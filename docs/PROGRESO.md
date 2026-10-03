@@ -26,6 +26,10 @@ Ver `docs/ARQUITECTURA.md` §A.3 "Decisiones que debes confirmar".
 - Rol **ayudante de invitaciones** (decisión del dueño): mamá le da permiso a John (Más → Invitar a la familia → interruptor). Puede enviar/reenviar invitaciones y ver quién se registró; NO ve dashboard, saldos ni movimientos de nadie más. No es administrador (privacidad entre hermanos intacta). Probado en `supabase/tests/70_helper.sql`. Nota: quien administra el proyecto de Supabase puede ver todo desde el panel técnico; eso es independiente de la app.
 - **Familia flexible** (decisión del dueño): el hermano se llama **Mauricio**; mamá puede incluir o quitar personas. Cada persona nueva = cuenta privada propia (clave generada desde el nombre). "Quitar" desactiva (RLS: la persona deja de ver todo) y conserva el historial; se puede reactivar y renombrar. Pedir confirmación si hay saldo. Migración `0009`, pruebas `90_members.sql`. Una persona quitada no cuenta en el dashboard ni en el saldo administrado.
 - **Máquinas iniciales** (pedido del dueño): **Wild** y **Máquina Multijuegos** vienen creadas y activas (migración `0012`); mamá puede agregar más, editarlas o desactivarlas (Ingresos → Ver máquinas). Cada ingreso se asigna a John, a Mauricio o a ambos al registrarlo; las máquinas no pertenecen a una persona fija. Probado en `85_default_machines.sql`.
+- **Restaurar eliminados** (`0013`): movimiento suelto o ingreso completo (con su reparto original; no revive lo quitado antes al editar). Queda en la auditoría como "Restaurado" y avisa al hijo.
+- **Saldo inicial por cuenta** (`0013`): mamá lo fija desde el detalle de la cuenta (a favor o en contra), con motivo y auditoría.
+- **Límite de intentos** al canjear invitaciones (`accept-invite`): más de 20 fallos en 10 min → 429, incluso con un código bueno.
+- **Prueba de humo visual** (`npm run smoke:web`): compila la app web contra un Supabase simulado, entra como mamá y John y recorre pantallas con capturas. Encontró y corrigió un error real: tras iniciar sesión la app mostraba "Cuenta sin permisos" porque decidía antes de cargar el perfil.
 
 ---
 ## PENDIENTE (al cierre del desarrollo)
@@ -44,10 +48,7 @@ Ver `docs/ARQUITECTURA.md` §A.3 "Decisiones que debes confirmar".
 ### Funciones no implementadas (decisión o fases futuras)
 - **Notificaciones push** (el teléfono avisa solo): hoy hay lista dentro de la app que se llena por trigger; falta registrar tokens y enviarlas.
 - **Exportar a Excel (.xlsx) y PDF:** hoy solo CSV (Excel lo abre).
-- **Versión web para mamá:** la arquitectura lo permite (Expo web) pero no se ha probado ni ajustado el diseño.
+- **Versión web para mamá:** compila y se recorre en la prueba de humo (diseño de celular); falta adaptar el diseño a pantalla ancha y publicarla.
 - **iOS:** sin configurar (se decidió Android).
-- **Restaurar un movimiento eliminado** (hoy se ve en el historial y se puede registrar uno nuevo).
-- **Saldo inicial por cuenta:** la columna existe (`opening_balance`) pero no hay pantalla; todas empiezan en $0.
 - **Copias de seguridad automáticas:** requieren plan Pro de Supabase (o exportar CSV cada mes).
-- **Límite de intentos propio** al canjear invitaciones (hoy se protege por el tamaño del código y el límite de Supabase).
 - Miniaturas de comprobantes, modo claro, textos configurables.

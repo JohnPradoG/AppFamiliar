@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/lib/chunks.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts src/security.test.ts",
     "test:db": "bash supabase/tests/run.sh",
-    "setup:build": "bash scripts/build-setup.sh"
+    "setup:build": "bash scripts/build-setup.sh",
+    "smoke:web": "bash scripts/smoke/run.sh"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@types/node": "^26.6.4",
     "@types/react": "~19.2.2",
+    "playwright-core": "^1.63.0",
     "typescript": "~6.0.3"
   }
 }
