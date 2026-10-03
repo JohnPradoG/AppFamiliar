@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts",
+    "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts",
     "test:db": "bash supabase/tests/run.sh"
   },
   "dependencies": {

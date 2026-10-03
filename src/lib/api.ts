@@ -1,5 +1,6 @@
 import { File } from 'expo-file-system';
 import { receiptPath, validateReceipt, type ReceiptMime } from './receipts';
+import type { AuditEntry, AuditTable } from './audit';
 import type { Movement, Origin } from './movements';
 import { supabase } from './supabase';
 
@@ -180,4 +181,63 @@ export async function uploadReceipt(accountId: string, movementId: string, file:
 }
 export async function deleteReceipt(id: string, reason?: string): Promise<void> {
   unwrap(await supabase.rpc('delete_receipt', { p_id: id, p_reason: reason ?? null }));
+}
+
+// ───────── Mamá: historial, edición, eliminación y auditoría (Fase 7) ─────────
+const ADMIN_MOVEMENT_SELECT = 'id, account_id, kind, origin, origin_detail, income_id, signed_amount, movement_date, concept, created_at, updated_at, deleted_at, machine_id, machine:machines(name)';
+export type AdminMovement = Movement & { income_id: string | null; machine_id: string | null };
+
+export type HistoryFilters = { from: string | null; to: string | null; kind: string | null; accountId: string | null; machineId: string | null; includeDeleted: boolean };
+export async function fetchHistory(f: HistoryFilters): Promise<AdminMovement[]> {
+  let q = supabase.from('account_movements').select(ADMIN_MOVEMENT_SELECT);
+  if (f.from) q = q.gte('movement_date', f.from);
+  if (f.to) q = q.lte('movement_date', f.to);
+  if (f.kind) q = q.eq('kind', f.kind);
+  if (f.accountId) q = q.eq('account_id', f.accountId);
+  if (f.machineId) q = q.eq('machine_id', f.machineId);
+  if (!f.includeDeleted) q = q.is('deleted_at', null);
+  return unwrap(await q.order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(500)) as unknown as AdminMovement[];
+}
+export async function fetchMovement(id: string): Promise<AdminMovement> {
+  return unwrap(await supabase.from('account_movements').select(ADMIN_MOVEMENT_SELECT).eq('id', id).single()) as unknown as AdminMovement;
+}
+// Nombres de TODAS las cuentas (también las de personas quitadas), para mostrar el destinatario.
+export async function fetchAccountNames(): Promise<Record<string, string>> {
+  const rows = unwrap(await supabase.from('accounts').select('id, profile:profiles(display_name)')) as unknown as { id: string; profile: { display_name: string } | null }[];
+  return Object.fromEntries(rows.map((r) => [r.id, r.profile?.display_name ?? '']));
+}
+export async function fetchProfileNames(): Promise<Record<string, string>> {
+  const rows = unwrap(await supabase.from('profiles').select('id, display_name')) as { id: string; display_name: string }[];
+  return Object.fromEntries(rows.map((r) => [r.id, r.display_name]));
+}
+export async function updateMovement(id: string, amount: number, date: string, concept: string | null, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('update_movement', { p_id: id, p_amount: amount, p_date: date, p_concept: concept, p_reason: reason }));
+}
+export async function deleteMovement(id: string, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('delete_movement', { p_id: id, p_reason: reason }));
+}
+export async function fetchAudit(table: AuditTable, recordId: string): Promise<AuditEntry[]> {
+  return unwrap(await supabase.from('audit_logs').select('id, action, old_data, new_data, reason, actor_id, at')
+    .eq('table_name', table).eq('record_id', recordId).order('at').order('id')) as unknown as AuditEntry[];
+}
+
+export type IncomeDetail = {
+  id: string; machine_id: string; income_date: string; amount: number; description: string | null; deleted_at: string | null;
+  machine: { name: string } | null; allocations: { id: string; account_id: string; signed_amount: number; deleted_at: string | null }[];
+};
+export async function fetchIncome(id: string): Promise<IncomeDetail> {
+  const r = unwrap(await supabase.from('incomes')
+    .select('id, machine_id, income_date, amount, description, deleted_at, machine:machines(name), allocations:account_movements(id, account_id, signed_amount, deleted_at)')
+    .eq('id', id).single()) as unknown as IncomeDetail;
+  return { ...r, allocations: r.allocations.filter((a) => a.deleted_at === null) };
+}
+export async function updateIncome(v: { id: string; amount: number; date: string; description: string | null; allocations: { account_id: string; amount: number }[]; reason: string | null }): Promise<void> {
+  unwrap(await supabase.rpc('update_income', { p_id: v.id, p_date: v.date, p_amount: v.amount, p_description: v.description, p_allocations: v.allocations, p_reason: v.reason }));
+}
+export async function deleteIncome(id: string, reason: string | null): Promise<void> {
+  unwrap(await supabase.rpc('delete_income', { p_id: id, p_reason: reason }));
+}
+
+export async function registerCorrection(v: { accountId: string; signedAmount: number; date: string; concept: string }): Promise<void> {
+  unwrap(await supabase.rpc('register_correction', { p_account: v.accountId, p_signed_amount: v.signedAmount, p_date: v.date, p_concept: v.concept }));
 }

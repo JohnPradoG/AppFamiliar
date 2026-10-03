@@ -53,3 +53,28 @@ test('transferencia', () => {
   assert.equal(validateTransfer({ accountId: null, amountText: '5', dateText: '2026-10-03', concept: '' }).ok, false);
   assert.equal(validateTransfer({ accountId: 'john', amountText: '-5', dateText: '2026-10-03', concept: '' }).ok, true); // "-" se ignora: solo dígitos
 });
+
+import { validateMovementEdit } from './forms.ts';
+test('editar movimiento', () => {
+  const base = { kind: 'transfer' as const, amountText: '80.000', negative: false, dateText: '2026-10-03', concept: ' x ' };
+  const r = validateMovementEdit(base);
+  assert.ok(r.ok && r.value.amount === 80000 && r.value.concept === 'x');
+  const neg = validateMovementEdit({ ...base, kind: 'transfer', negative: true });          // el signo solo aplica a correcciones
+  assert.ok(neg.ok && neg.value.amount === 80000);
+  const c = validateMovementEdit({ ...base, kind: 'correction', negative: true });
+  assert.ok(c.ok && c.value.amount === -80000);
+  assert.equal(validateMovementEdit({ ...base, kind: 'correction', concept: '' }).ok, false);
+  assert.equal(validateMovementEdit({ ...base, amountText: '' }).ok, false);
+  assert.equal(validateMovementEdit({ ...base, dateText: '2026-02-31' }).ok, false);
+});
+
+import { validateCorrection } from './forms.ts';
+test('corrección: signo y explicación obligatoria', () => {
+  const base = { accountId: 'john', amountText: '5.000', negative: true, dateText: '2026-10-03', concept: ' Ajuste ' };
+  const r = validateCorrection(base);
+  assert.ok(r.ok && r.value.signedAmount === -5000 && r.value.concept === 'Ajuste');
+  const p = validateCorrection({ ...base, negative: false });
+  assert.ok(p.ok && p.value.signedAmount === 5000);
+  assert.equal(validateCorrection({ ...base, concept: ' ' }).ok, false);
+  assert.equal(validateCorrection({ ...base, accountId: null }).ok, false);
+});

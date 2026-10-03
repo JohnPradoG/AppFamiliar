@@ -17,6 +17,7 @@ export default function AdminLayout() {
       <Tabs.Screen name="cuentas" options={{ title: 'Cuentas' }} />
       <Tabs.Screen name="mas" options={{ title: 'Más' }} />
       <Tabs.Screen name="maquinas" options={{ href: null }} />
+      <Tabs.Screen name="historial" options={{ href: null }} />
     </Tabs>
   );
 }

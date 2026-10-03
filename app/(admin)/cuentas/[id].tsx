@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Amount, Card, ErrorText, Loading, Muted, MovementRow, ScrollScreen, SectionTitle, LabelValue } from '../../../src/components';
 import { useAsync } from '../../../src/hooks/useAsync';
 import { fetchAccountMovements, fetchDashboard, friendlyError } from '../../../src/lib/api';
@@ -7,6 +7,7 @@ import { CATEGORY_LABEL, CATEGORY_ORDER, categoryOf, type Category } from '../..
 // Detalle de la cuenta de un hijo (solo mamá): saldo, de dónde viene y todos sus movimientos.
 export default function DetalleCuenta() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { data, error, loading, reload } = useAsync(async () => {
     const [dash, movements] = await Promise.all([fetchDashboard(null, null), fetchAccountMovements(id)]);
     return { account: dash.accounts.find((a) => a.account_id === id), movements };
@@ -34,7 +35,7 @@ export default function DetalleCuenta() {
           </Card>
           <SectionTitle>Movimientos</SectionTitle>
           {data.movements.length === 0 && <Muted>Esta cuenta todavía no tiene movimientos.</Muted>}
-          {data.movements.map((m) => <Card key={m.id}><MovementRow m={m} /></Card>)}
+          {data.movements.map((m) => <Card key={m.id} onPress={() => router.push({ pathname: '/historial/[id]', params: { id: m.id } })}><MovementRow m={m} /></Card>)}
         </>
       )}
     </ScrollScreen>

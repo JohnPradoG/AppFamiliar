@@ -4,6 +4,8 @@ export type Origin = 'machine' | 'work' | 'other' | 'custom' | 'transfer' | 'cor
 export type Movement = {
   id: string; kind: Kind; origin: Origin; origin_detail: string | null; signed_amount: number;
   movement_date: string; concept: string | null; updated_at: string; machine: { name: string } | null;
+  // Solo las trae la consulta de mamá (el hijo no las necesita):
+  account_id?: string; deleted_at?: string | null; created_at?: string;
 };
 // Categorías que ve el hijo en "Origen del saldo".
 export type Category = 'machine' | 'credit' | 'transfer' | 'correction';

@@ -21,6 +21,7 @@ export default function AdminHome() {
       <Button label="Registrar ingreso" onPress={() => router.push('/ingresos/nuevo')} />
       <Button label="Agregar saldo" kind="ghost" onPress={() => router.push('/ingresos/saldo')} />
       <Button label="Registrar transferencia" kind="ghost" onPress={() => router.push('/transferencias/nueva')} />
+      <Button label="Ver historial completo" kind="ghost" onPress={() => router.push('/historial')} />
       <Chips options={PERIODS} value={period} onChange={setPeriod} />
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}

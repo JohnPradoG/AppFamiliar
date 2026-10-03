@@ -62,3 +62,29 @@ export function validateTransfer(i: TransferInput): Result<TransferValue> {
   if (!date) return fail('La fecha debe ser válida, con el formato AAAA-MM-DD.');
   return { ok: true, value: { accountId: i.accountId, amount, date, concept: clean(i.concept) } };
 }
+
+export type MovementEditInput = { kind: 'credit' | 'transfer' | 'correction'; amountText: string; negative: boolean; dateText: string; concept: string };
+export type MovementEditValue = { amount: number; date: string; concept: string | null };
+
+// Para saldo agregado y transferencia el monto es positivo (el signo lo pone el tipo). La corrección sí lleva signo.
+export function validateMovementEdit(i: MovementEditInput): Result<MovementEditValue> {
+  const amount = parseCOP(i.amountText);
+  if (!amount) return fail('Escriba un monto mayor que cero.');
+  const date = parseDate(i.dateText);
+  if (!date) return fail('La fecha debe ser válida, con el formato AAAA-MM-DD.');
+  if (i.kind === 'correction' && !i.concept.trim()) return fail('Una corrección necesita una explicación.');
+  return { ok: true, value: { amount: i.kind === 'correction' && i.negative ? -amount : amount, date, concept: clean(i.concept) } };
+}
+
+export type CorrectionInput = { accountId: string | null; amountText: string; negative: boolean; dateText: string; concept: string };
+export type CorrectionValue = { accountId: string; signedAmount: number; date: string; concept: string };
+
+export function validateCorrection(i: CorrectionInput): Result<CorrectionValue> {
+  if (!i.accountId) return fail('Elija la cuenta que se corrige.');
+  const amount = parseCOP(i.amountText);
+  if (!amount) return fail('Escriba un monto mayor que cero.');
+  const date = parseDate(i.dateText);
+  if (!date) return fail('La fecha debe ser válida, con el formato AAAA-MM-DD.');
+  if (!i.concept.trim()) return fail('Explique por qué se hace la corrección.');
+  return { ok: true, value: { accountId: i.accountId, signedAmount: i.negative ? -amount : amount, date, concept: i.concept.trim() } };
+}

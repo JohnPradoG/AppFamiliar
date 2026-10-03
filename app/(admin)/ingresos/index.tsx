@@ -12,6 +12,7 @@ export default function Ingresos() {
       <Title>Ingresos</Title>
       <Button label="Registrar ingreso de máquina" onPress={() => router.push('/ingresos/nuevo')} />
       <Button label="Agregar saldo a un hijo" kind="ghost" onPress={() => router.push('/ingresos/saldo')} />
+      <Button label="Registrar una corrección" kind="ghost" onPress={() => router.push('/ingresos/correccion')} />
       <Button label="Ver máquinas" kind="ghost" onPress={() => router.push('/maquinas')} />
       <SectionTitle>Últimos ingresos de máquinas</SectionTitle>
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
@@ -20,7 +21,7 @@ export default function Ingresos() {
       {data?.map((i) => {
         const assigned = i.allocations.reduce((s, a) => s + a.signed_amount, 0);
         return (
-          <Card key={i.id}>
+          <Card key={i.id} onPress={() => router.push({ pathname: '/ingresos/[id]', params: { id: i.id } })}>
             <LabelValue label={i.machine?.name ?? 'Máquina'}><Amount value={i.amount} tone="positive" size={18} /></LabelValue>
             <Muted>{i.income_date}{i.description ? ` · ${i.description}` : ''}</Muted>
             <Muted>{assigned === i.amount ? 'Asignado por completo a cuentas' : assigned === 0 ? 'Sin asignar a ninguna cuenta' : `Asignado ${formatCOP(assigned)} · sin asignar ${formatCOP(i.amount - assigned)}`}</Muted>

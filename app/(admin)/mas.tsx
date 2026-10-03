@@ -9,7 +9,8 @@ export default function Mas() {
     <Screen>
       <Title>Más</Title>
       <Muted>{profile?.display_name} · {session?.user.email}</Muted>
-      <Button label="Máquinas" onPress={() => router.push('/maquinas')} />
+      <Button label="Historial completo" onPress={() => router.push('/historial')} />
+      <Button label="Máquinas" kind="ghost" onPress={() => router.push('/maquinas')} />
       <Button label="Invitar a la familia" kind="ghost" onPress={() => router.push('/familia')} />
       <Button label="Cambiar contraseña" kind="ghost" onPress={() => router.push('/set-password')} />
       <Button label="Cerrar sesión" kind="ghost" onPress={signOut} />

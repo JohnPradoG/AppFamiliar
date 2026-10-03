@@ -18,7 +18,7 @@ export default function Transferencias() {
       {!data && loading ? <Loading /> : null}
       {data && data.transfers.length === 0 && <Muted>Todavía no hay transferencias.</Muted>}
       {data?.transfers.map((t) => (
-        <Card key={t.id}>
+        <Card key={t.id} onPress={() => router.push({ pathname: '/historial/[id]', params: { id: t.id } })}>
           <LabelValue label={`A ${data.names[t.account_id] ?? ''}`}><Amount value={t.signed_amount} tone="negative" size={18} /></LabelValue>
           <Muted>{t.movement_date}{t.concept ? ` · ${t.concept}` : ''}</Muted>
         </Card>

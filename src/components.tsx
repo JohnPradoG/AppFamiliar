@@ -92,7 +92,7 @@ const cardStyles = StyleSheet.create({
 import { formatSigned } from './lib/money';
 import { movementSubtitle, movementTitle, type Movement } from './lib/movements';
 
-export function MovementRow({ m }: { m: Movement }) {
+export function MovementRow({ m, accountName }: { m: Movement; accountName?: string }) {
   const positive = m.signed_amount > 0;
   const color = positive ? colors.positive : colors.negative;
   const sub = movementSubtitle(m);
@@ -102,7 +102,7 @@ export function MovementRow({ m }: { m: Movement }) {
         <Text style={{ color, fontSize: 20, fontWeight: '700' }}>{m.kind === 'correction' ? '±' : positive ? '↓' : '↑'}</Text>
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>{movementTitle(m)}{m.kind === 'correction' ? '  · corrección' : ''}</Text>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600', textDecorationLine: m.deleted_at ? 'line-through' : 'none' }}>{movementTitle(m)}{accountName ? ` → ${accountName}` : ''}{m.kind === 'correction' ? '  · corrección' : ''}{m.deleted_at ? '  · eliminado' : ''}</Text>
         <Text style={{ color: colors.muted, fontSize: 13 }}>{m.movement_date}{sub ? ` · ${sub}` : ''}</Text>
         <Text style={{ color: colors.muted, fontSize: 12 }}>Registrado por Mamá · modificado {m.updated_at.slice(0, 10)}</Text>
       </View>
