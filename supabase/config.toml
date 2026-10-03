@@ -1,10 +1,15 @@
-# Config local de Supabase CLI (supabase start). En producción, aplicar lo mismo en el panel:
-# Authentication → Providers → Email → desactivar "Allow new users to sign up".
+# Config local de Supabase CLI. En producción, aplicar lo mismo en el panel (ver README).
 project_id = "appfamiliar"
 
 [auth]
-enable_signup = false              # nadie puede registrarse: solo las 3 cuentas creadas por el dueño
+enable_signup = false                      # nadie puede registrarse solo: únicamente quien mamá invite
 minimum_password_length = 8
+additional_redirect_urls = ["appfamiliar://set-password"]   # a dónde vuelve el enlace de invitación
+
 [auth.email]
 enable_signup = false
 enable_confirmations = false
+otp_expiry = 86400                         # el enlace de invitación dura 24 h
+
+[functions.invite-member]
+verify_jwt = true                          # solo usuarios con sesión; además la función exige ser mamá

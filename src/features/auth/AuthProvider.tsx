@@ -2,6 +2,7 @@ import type { Session } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { supabase } from '../../lib/supabase';
+import { parseAuthUrl, translateAuthError } from './links';
 
 export type Role = 'admin' | 'user';
 export type Profile = { id: string; role: Role; display_name: string };
@@ -19,25 +20,6 @@ type AuthState = {
 
 const Ctx = createContext<AuthState | null>(null);
 
-// Los enlaces de Supabase traen los tokens en el fragmento (#access_token=...&refresh_token=...).
-export function parseAuthUrl(url: string): { access_token: string; refresh_token: string } | null {
-  const frag = url.split('#')[1];
-  if (!frag) return null;
-  const p = new URLSearchParams(frag);
-  const access_token = p.get('access_token');
-  const refresh_token = p.get('refresh_token');
-  return access_token && refresh_token ? { access_token, refresh_token } : null;
-}
-
-export function translateAuthError(message: string): string {
-  const m = message.toLowerCase();
-  if (m.includes('invalid login')) return 'Correo o contraseña incorrectos.';
-  if (m.includes('rate limit') || m.includes('too many')) return 'Demasiados intentos. Espere unos minutos.';
-  if (m.includes('network') || m.includes('fetch')) return 'Sin conexión. Revise su internet.';
-  if (m.includes('password') && m.includes('characters')) return 'La contraseña debe tener al menos 8 caracteres.';
-  return 'No se pudo completar la operación. Intente de nuevo.';
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -51,35 +33,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile((data as Profile | null) ?? null);
   }, []);
 
+  // Enlaces de invitación / recuperación (Android abre appfamiliar://...#access_token=...&refresh_token=...).
+  const handleUrl = useCallback(async (url: string | null) => {
+    const tokens = url ? parseAuthUrl(url) : null;
+    if (!tokens) return;
+    const { error } = await supabase.auth.setSession(tokens);
+    if (!error) setRecovering(true);
+  }, []);
+
   useEffect(() => {
     let active = true;
-    supabase.auth.getSession().then(async ({ data }) => {
+    (async () => {
+      // El enlace inicial se procesa antes de dejar de "cargar": así /set-password no muestra "enlace no válido" por error.
+      await handleUrl(await Linking.getInitialURL());
+      const { data } = await supabase.auth.getSession();
       if (!active) return;
       setSession(data.session);
       await loadProfile(data.session);
       if (active) setLoading(false);
-    });
+    })();
     const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
       setSession(s);
       if (event === 'PASSWORD_RECOVERY') setRecovering(true);
       // No hacer llamadas a supabase dentro del callback (puede bloquear): se difiere.
       setTimeout(() => void loadProfile(s), 0);
     });
-    return () => { active = false; sub.subscription.unsubscribe(); };
-  }, [loadProfile]);
-
-  // Enlaces de invitación / recuperación (Android abre appfamiliar://...#access_token=...).
-  useEffect(() => {
-    const handle = async (url: string | null) => {
-      const tokens = url ? parseAuthUrl(url) : null;
-      if (!tokens) return;
-      const { error } = await supabase.auth.setSession(tokens);
-      if (!error) setRecovering(true);
-    };
-    void Linking.getInitialURL().then(handle);
-    const sub = Linking.addEventListener('url', (e) => void handle(e.url));
-    return () => sub.remove();
-  }, []);
+    const linkSub = Linking.addEventListener('url', (e) => void handleUrl(e.url));
+    return () => { active = false; sub.subscription.unsubscribe(); linkSub.remove(); };
+  }, [loadProfile, handleUrl]);
 
   const value = useMemo<AuthState>(() => ({
     loading, session, profile, recovering,

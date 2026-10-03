@@ -38,3 +38,21 @@ export function friendlyError(e: unknown): string {
   if (m.toLowerCase().includes('fetch') || m.toLowerCase().includes('network')) return 'Sin conexión. Revise su internet.';
   return 'Ocurrió un error. Intente de nuevo.';
 }
+
+export type Member = { owner_key: 'john' | 'brother'; display_name: string };
+export async function fetchMembers(): Promise<Member[]> {
+  const accounts = unwrap(await supabase.from('accounts').select('owner_key, user_id')) as { owner_key: 'john' | 'brother'; user_id: string }[];
+  const profiles = unwrap(await supabase.from('profiles').select('id, display_name')) as { id: string; display_name: string }[];
+  return accounts.map((a) => ({ owner_key: a.owner_key, display_name: profiles.find((p) => p.id === a.user_id)?.display_name ?? '' }));
+}
+
+// Pide a la Edge Function un enlace de invitación (o uno nuevo si el hijo ya fue invitado). Nunca maneja contraseñas.
+export async function inviteMember(ownerKey: 'john' | 'brother', email?: string, displayName?: string): Promise<{ link: string; email: string; resent: boolean }> {
+  const { data, error } = await supabase.functions.invoke('invite-member', { body: { owner_key: ownerKey, email, display_name: displayName } });
+  if (error) {
+    const ctx = (error as { context?: Response }).context;
+    const detail = ctx && typeof ctx.json === 'function' ? await ctx.json().catch(() => null) : null;
+    throw new Error(detail?.error ?? error.message);
+  }
+  return data as { link: string; email: string; resent: boolean };
+}

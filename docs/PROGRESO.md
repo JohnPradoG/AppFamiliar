@@ -21,5 +21,5 @@ Ver `docs/ARQUITECTURA.md` §A.3 "Decisiones que debes confirmar".
 
 ## Decisiones tomadas con el dueño
 - Plataforma: **Android** (Expo; versión web posible después).
-- Registro: **por invitación por correo**, cada quien crea su contraseña; registro público desactivado.
+- Registro: **mamá invita desde la app** (Más → Invitar a la familia) y comparte por WhatsApp el enlace de descarga del APK + un enlace de un solo uso; cada quien crea SU contraseña (nadie la envía). Registro público desactivado. Implementado con la Edge Function `invite-member` (service_role solo en el servidor; solo mamá puede llamarla).
 - Diseño: seguir `docs/diseno/referencia-pantallas.jpg`.
