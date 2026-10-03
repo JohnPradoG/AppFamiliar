@@ -6,6 +6,7 @@ Todo es gratis. Lo hace **una sola persona** (quien administra el proyecto). Ord
 Proyecto ya creado: **https://jkysgjmrwsmmhnlhfezl.supabase.co** (Project URL y llave *publishable*, que son públicas por diseño y van en la app).
 
 1. **SQL Editor → New query:** abrir `supabase/setup_all.sql`, copiar TODO, pegar y tocar **Run**. Debe terminar sin errores (si sale un error, copiar el mensaje). Esto crea tablas, seguridad y las máquinas **Wild** y **Máquina Multijuegos**.
+   **Comprobar:** en otra consulta nueva pegar `supabase/verify_setup.sql` → Run. Todas las filas deben decir **OK**, excepto "Mamá ya está dada de alta" (última), que dirá FALLA hasta el paso 4. Si otra dice FALLA, copiar la tabla completa de resultados.
 2. **Authentication → Sign In / Providers → Email:** desactivar **"Allow new users to sign up"** y **"Confirm email"** (las cuentas se crean solo por invitación).
 3. **Authentication → URL Configuration → Redirect URLs:** agregar `appfamiliar://set-password` (solo lo usa "Olvidé mi contraseña").
 4. **Mamá:** Authentication → Users → *Add user → Send invitation* con su correo; ella abre el enlace que le llega y crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` cambiando el correo por el de mamá.
