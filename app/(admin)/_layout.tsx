@@ -12,6 +12,8 @@ export default function AdminLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border }, tabBarActiveTintColor: colors.info, tabBarInactiveTintColor: colors.muted }}>
       <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
+      <Tabs.Screen name="cuentas" options={{ title: 'Cuentas' }} />
+      <Tabs.Screen name="maquinas" options={{ title: 'Máquinas' }} />
       <Tabs.Screen name="mas" options={{ title: 'Más' }} />
     </Tabs>
   );

@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "jest",
+    "test": "node --test src/lib/format.test.ts",
     "test:db": "bash supabase/tests/run.sh"
   },
   "dependencies": {
@@ -30,6 +30,7 @@
     "react-native-web": "^0.21.3"
   },
   "devDependencies": {
+    "@types/node": "^26.6.4",
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   }

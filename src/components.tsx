@@ -38,3 +38,52 @@ const styles = StyleSheet.create({
   btnGhost: { backgroundColor: 'transparent' },
   btnText: { color: '#06122B', fontSize: 17, fontWeight: '700' },
 });
+
+// ───────── Componentes de la Fase 2 ─────────
+import { RefreshControl, ScrollView } from 'react-native';
+import { formatCOP } from './lib/format-reexport';
+
+export function ScrollScreen({ children, refreshing, onRefresh }: { children: ReactNode; refreshing?: boolean; onRefresh?: () => void }) {
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: space.lg, gap: space.md, paddingBottom: space.xl * 2 }}
+      refreshControl={onRefresh ? <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} tintColor={colors.info} /> : undefined}>
+      {children}
+    </ScrollView>
+  );
+}
+export function Card({ children, onPress }: { children: ReactNode; onPress?: () => void }) {
+  const body = <View style={cardStyles.card}>{children}</View>;
+  return onPress ? <Pressable onPress={onPress}>{body}</Pressable> : body;
+}
+export function SectionTitle({ children }: { children: ReactNode }) {
+  return <Text style={cardStyles.section}>{children}</Text>;
+}
+export function Amount({ value, tone = 'neutral', size = 20 }: { value: number; tone?: 'positive' | 'negative' | 'info' | 'neutral'; size?: number }) {
+  const color = tone === 'positive' ? colors.positive : tone === 'negative' ? colors.negative : tone === 'info' ? colors.info : colors.text;
+  return <Text style={{ color, fontSize: size, fontWeight: '700' }}>{formatCOP(value)}</Text>;
+}
+export function LabelValue({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: space.sm }}>
+      <Text style={[styles.muted, { flexShrink: 1 }]}>{label}</Text>
+      {children}
+    </View>
+  );
+}
+export function Chips<T extends string>({ options, value, onChange }: { options: { key: T; label: string }[]; value: T; onChange: (k: T) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: space.sm }}>
+      {options.map((o) => (
+        <Pressable key={o.key} onPress={() => onChange(o.key)} style={[cardStyles.chip, o.key === value && cardStyles.chipOn]}>
+          <Text style={{ color: o.key === value ? '#06122B' : colors.muted, fontWeight: '600' }}>{o.label}</Text>
+        </Pressable>
+      ))}
+    </ScrollView>
+  );
+}
+const cardStyles = StyleSheet.create({
+  card: { backgroundColor: colors.card, borderRadius: radius.card, padding: space.md, gap: space.sm, borderWidth: 1, borderColor: colors.border },
+  section: { color: colors.text, fontSize: 18, fontWeight: '700', marginTop: space.sm },
+  chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border },
+  chipOn: { backgroundColor: colors.info, borderColor: colors.info },
+});
