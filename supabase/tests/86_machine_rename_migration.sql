@@ -1,11 +1,17 @@
--- La migración 0012 corrige "Multiusos" → "Multijuegos" si una versión anterior la creó, y es repetible sin duplicar.
+-- La migración 0012 corrige nombres de versiones anteriores ("Multiusos" / "Multijuegos") a "Máquina Multijuegos", sin duplicar.
 reset role;
--- Simula una instalación hecha con la versión anterior: la máquina se llamaba "Multiusos".
-update public.machines set name = 'Multiusos', description = 'versión anterior' where name = 'Multijuegos';
+-- Simula una instalación hecha con la versión anterior: la máquina se llamaba "Multijuegos".
+update public.machines set name = 'Multijuegos', description = 'versión anterior' where name = 'Máquina Multijuegos';
 \ir ../migrations/0012_default_machines.sql
 do $$ begin
-  perform test.eq('ya no queda "Multiusos"', (select count(*) from public.machines where lower(name) = 'multiusos'), 0);
-  perform test.eq('Multijuegos existe una sola vez', (select count(*) from public.machines where lower(name) = 'multijuegos'), 1);
-  perform test.eq('conserva su historial al renombrarse (mismo id, con ingresos)', (select count(*) from public.incomes i join public.machines m on m.id = i.machine_id where m.name = 'Multijuegos'), (select count(*) from public.incomes i join public.machines m on m.id = i.machine_id where m.name = 'Multijuegos'));
+  perform test.eq('ya no queda "Multijuegos" a secas', (select count(*) from public.machines where lower(name) = 'multijuegos'), 0);
+  perform test.eq('queda "Máquina Multijuegos" una sola vez', (select count(*) from public.machines where name = 'Máquina Multijuegos'), 1);
   perform test.eq('Wild no se duplicó', (select count(*) from public.machines where lower(name) = 'wild'), 1);
+end $$;
+-- Y desde "Multiusos" (primera versión)
+update public.machines set name = 'Multiusos' where name = 'Máquina Multijuegos';
+\ir ../migrations/0012_default_machines.sql
+do $$ begin
+  perform test.eq('desde "Multiusos" también se corrige', (select count(*) from public.machines where name = 'Máquina Multijuegos'), 1);
+  perform test.eq('y no queda "Multiusos"', (select count(*) from public.machines where lower(name) = 'multiusos'), 0);
 end $$;
