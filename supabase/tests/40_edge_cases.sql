@@ -25,7 +25,7 @@ begin
   perform test.eq('auditoría registra el borrado', (select count(*) from public.audit_logs where record_id = v_tr and action = 'delete'), 1);
 
   -- Reparto parcial: ingreso 100.000 → 60.000 John / 30.000 Hermano; 10.000 sin asignar.
-  select id into v_m2 from public.machines limit 1;
+  select id into v_m2 from public.machines where name = 'Máquina 1';
   v_inc := public.register_income(v_m2, '2026-10-04', 100000, 'Reparto',
     jsonb_build_array(jsonb_build_object('account_id', test.id('acc_john'), 'amount', 60000),
                       jsonb_build_object('account_id', test.id('acc_brother'), 'amount', 30000)));

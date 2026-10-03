@@ -1,4 +1,4 @@
--- AppFamiliar · TODA la base de datos en un solo archivo (migraciones 0001–0011 juntas).
+-- AppFamiliar · TODA la base de datos en un solo archivo (migraciones 0001–0012 juntas).
 -- Pegar completo en Supabase → SQL Editor → New query → Run. Se ejecuta UNA sola vez.
 -- Generado por scripts/build-setup.sh: no editar a mano.
 
@@ -915,3 +915,12 @@ grant execute on function public.mark_notifications_read() to authenticated;
 
 revoke update (read_at) on public.notifications from authenticated;
 drop policy notifications_mark_read on public.notifications;
+
+-- ═════════ 0012_default_machines.sql ═════════
+-- AppFamiliar · 0012 · Máquinas iniciales de la familia: Wild y Multiusos (activas).
+-- Mamá puede editarlas, desactivarlas o agregar más desde la app (Ingresos → Ver máquinas).
+-- "on conflict do nothing": si ya existen (mismo nombre), no se toca nada.
+
+insert into public.machines (name, description)
+values ('Wild', 'Máquina Wild'), ('Multiusos', 'Máquina Multiusos')
+on conflict (lower(btrim(name))) do nothing;

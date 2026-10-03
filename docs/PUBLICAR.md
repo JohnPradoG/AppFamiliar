@@ -4,7 +4,7 @@ Todo es gratis. Lo hace **una sola persona** (quien administra el proyecto). Ord
 
 ## A. Supabase (base de datos y autenticación)
 1. Crear cuenta en supabase.com y un proyecto ("appfamiliar", región cercana, **guardar la contraseña de la base**). Activar verificación en dos pasos en esa cuenta.
-2. **SQL Editor → New query:** pegar `supabase/setup_all.sql` completo → Run.
+2. **SQL Editor → New query:** pegar `supabase/setup_all.sql` completo → Run. (Ya crea las máquinas **Wild** y **Multiusos**.)
 3. **Authentication → Providers → Email:** desactivar "Allow new users to sign up" y "Confirm email" (las cuentas las crea la invitación).
 4. **Authentication → URL Configuration → Redirect URLs:** agregar `appfamiliar://set-password` (solo lo usa "Olvidé mi contraseña").
 5. **Mamá:** Authentication → Users → *Invite user* con su correo; ella abre el enlace y crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` con ese correo.

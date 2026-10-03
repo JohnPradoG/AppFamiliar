@@ -12,14 +12,14 @@ do $$ declare d jsonb; j jsonb; begin
   perform test.eq('dash: John saldo', (j->>'balance')::bigint, 355000);
   perform test.eq('dash: John asignado (sin correcciones)', (j->>'assigned')::bigint, 380000);
   perform test.eq('dash: John transferido', (j->>'transferred')::bigint, 20000);
-  perform test.eq('dash: máquina M1 total', (d->'machines'->0->>'total')::bigint, 180000);
+  perform test.eq('dash: máquina M1 total', (select (x->>'total')::bigint from jsonb_array_elements(d->'machines') x where x->>'name' = 'Máquina 1'), 180000);
   -- Filtro de período: solo el 6 de octubre en adelante
   d := public.admin_dashboard('2026-10-06', '2026-10-31');
   perform test.eq('dash período: máquinas 0', (d->>'total_machine_income')::bigint, 0);
   perform test.eq('dash período: transferido 20.000', (d->>'total_transferred')::bigint, 20000);
   perform test.eq('dash período: el saldo no depende del filtro', (d->>'managed_balance')::bigint, 455000);
   -- Reparto parcial deja "sin asignar"
-  perform public.register_income((select id from public.machines limit 1), '2026-10-07', 50000, 'parcial',
+  perform public.register_income((select id from public.machines where name = 'Máquina 1'), '2026-10-07', 50000, 'parcial',
      jsonb_build_array(jsonb_build_object('account_id', test.id('acc_brother'), 'amount', 20000)));
   d := public.admin_dashboard('2026-10-07', '2026-10-07');
   perform test.eq('dash: ingreso parcial', (d->>'total_machine_income')::bigint, 50000);
