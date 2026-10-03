@@ -3,17 +3,23 @@ import { useState } from 'react';
 import { Amount, Button, Card, Chips, ErrorText, LabelValue, Loading, Muted, ScrollScreen, SectionTitle, Title } from '../../src/components';
 import { useAuth } from '../../src/features/auth/AuthProvider';
 import { useAsync } from '../../src/hooks/useAsync';
+import { DateField } from '../../src/features/FormParts';
 import { fetchDashboard, friendlyError } from '../../src/lib/api';
-import { PERIODS, periodRange, type PeriodKey } from '../../src/lib/period';
+import { parseDate } from '../../src/lib/forms';
+import { PERIODS, periodRange, toISODate, type PeriodKey } from '../../src/lib/period';
+
+type PeriodOpt = PeriodKey | 'custom';
 
 export default function AdminHome() {
   const { profile } = useAuth();
   const router = useRouter();
-  const [period, setPeriod] = useState<PeriodKey>('month');
+  const [period, setPeriod] = useState<PeriodOpt>('month');
+  const [from, setFrom] = useState(toISODate(new Date()));
+  const [to, setTo] = useState(toISODate(new Date()));
   const { data, error, loading, reload } = useAsync(() => {
-    const { from, to } = periodRange(period);
-    return fetchDashboard(from, to);
-  }, [period]);
+    const r = period === 'custom' ? { from: parseDate(from), to: parseDate(to) } : periodRange(period);
+    return fetchDashboard(r.from, r.to);
+  }, [period, from, to]);
 
   return (
     <ScrollScreen refreshing={loading && !!data} onRefresh={reload}>
@@ -22,7 +28,8 @@ export default function AdminHome() {
       <Button label="Agregar saldo" kind="ghost" onPress={() => router.push('/admin/ingresos/saldo')} />
       <Button label="Registrar transferencia" kind="ghost" onPress={() => router.push('/admin/transferencias/nueva')} />
       <Button label="Ver historial completo" kind="ghost" onPress={() => router.push('/admin/historial')} />
-      <Chips options={PERIODS} value={period} onChange={setPeriod} />
+      <Chips options={[...PERIODS, { key: 'custom' as const, label: 'Personalizado' }]} value={period} onChange={setPeriod} />
+      {period === 'custom' && (<><Muted>Desde</Muted><DateField value={from} onChange={setFrom} /><Muted>Hasta</Muted><DateField value={to} onChange={setTo} /></>)}
       {error ? <ErrorText>{friendlyError(error)}</ErrorText> : null}
       {!data && loading ? <Loading /> : null}
       {data && (

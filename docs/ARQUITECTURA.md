@@ -100,8 +100,8 @@ Verificado con pruebas: `supabase/tests/30_cases_6_to_8_privacy.sql`.
 **Hijo (idéntica para ambos):** Inicio ("Hola, John", saldo, resumen) · Historial (filtros) · Comprobantes · Mi cuenta (origen del saldo, tocar categoría → detalle) · Detalle de movimiento · Más.
 
 ## F. Flujo de navegación
-- `app/index` decide: sin sesión → `/login`; con sesión → lee `profiles.role` → `/(admin)` o `/(user)`.
-- Un hijo que intente abrir `/(admin)/…` es redirigido (y de todos modos la BD no le entregaría datos).
+- `app/index` decide: sin sesión → `/login`; con sesión → lee `profiles.role` → `/admin` o `/user`.
+- Un hijo que intente abrir `/admin/…` es redirigido (y de todos modos la BD no le entregaría datos).
 - **Mamá (tabs):** Inicio · Ingresos · Transferencias · Cuentas · Máquinas · Historial · Más. **Hijo (tabs):** Inicio · Historial · Comprobantes · Mi cuenta · Más.
 - Acciones rápidas del Inicio de mamá: Registrar ingreso · Agregar saldo · Transferir.
 
