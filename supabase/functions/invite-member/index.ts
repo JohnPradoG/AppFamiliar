@@ -4,7 +4,10 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 import { generateCode, hashCode } from '../_shared/token.ts';
 import { handleInvite, type Deps } from './handler.ts';
 
-const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } });
+// Supabase inyecta estas variables en la función. Llave nueva (SUPABASE_SECRET_KEY) o la clásica (SERVICE_ROLE) según el proyecto.
+const secretKey = Deno.env.get('SUPABASE_SECRET_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+if (!secretKey) throw new Error('Falta la llave secreta de Supabase en el entorno de la función');
+const admin = createClient(Deno.env.get('SUPABASE_URL')!, secretKey, { auth: { persistSession: false } });
 const base = Deno.env.get('INVITE_BASE_URL');
 
 const deps: Deps = {

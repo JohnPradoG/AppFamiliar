@@ -11,7 +11,8 @@
     "test": "node --test src/lib/format.test.ts src/lib/movements.test.ts src/lib/forms.test.ts src/lib/receipts.test.ts src/lib/history.test.ts src/lib/chunks.test.ts src/features/auth/links.test.ts supabase/functions/invite-member/handler.test.ts supabase/functions/accept-invite/handler.test.ts src/security.test.ts",
     "test:db": "bash supabase/tests/run.sh",
     "setup:build": "bash scripts/build-setup.sh",
-    "smoke:web": "bash scripts/smoke/run.sh"
+    "smoke:web": "bash scripts/smoke/run.sh",
+    "functions:bundle": "node scripts/bundle-functions.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.16",

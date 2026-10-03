@@ -2,27 +2,28 @@
 
 Todo es gratis. Lo hace **una sola persona** (quien administra el proyecto). Orden recomendado:
 
-## A. Supabase (base de datos y autenticación)
-1. Crear cuenta en supabase.com y un proyecto ("appfamiliar", región cercana, **guardar la contraseña de la base**). Activar verificación en dos pasos en esa cuenta.
-2. **SQL Editor → New query:** pegar `supabase/setup_all.sql` completo → Run. (Ya crea las máquinas **Wild** y **Máquina Multijuegos**.)
-3. **Authentication → Providers → Email:** desactivar "Allow new users to sign up" y "Confirm email" (las cuentas las crea la invitación).
-4. **Authentication → URL Configuration → Redirect URLs:** agregar `appfamiliar://set-password` (solo lo usa "Olvidé mi contraseña").
-5. **Mamá:** Authentication → Users → *Invite user* con su correo; ella abre el enlace y crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` con ese correo.
-6. **Funciones de invitación** (desde un computador con Node): 
-   ```
-   npx supabase login
-   npx supabase link --project-ref <REF>          # el REF está en Project Settings → General
-   npx supabase functions deploy invite-member
-   npx supabase functions deploy accept-invite --no-verify-jwt
-   ```
-7. Copiar **Project URL** y la llave **anon / publishable** (Project Settings → API). *Nunca* la `service_role`.
+## A. Supabase (todo desde el panel, sin instalar nada · ~10 minutos)
+Proyecto ya creado: **https://igytuhqidvlldngaouhe.supabase.co** (Project URL y llave *publishable*, que son públicas por diseño y van en la app).
+
+1. **SQL Editor → New query:** abrir `supabase/setup_all.sql`, copiar TODO, pegar y tocar **Run**. Debe terminar sin errores (si sale un error, copiar el mensaje). Esto crea tablas, seguridad y las máquinas **Wild** y **Máquina Multijuegos**.
+2. **Authentication → Sign In / Providers → Email:** desactivar **"Allow new users to sign up"** y **"Confirm email"** (las cuentas se crean solo por invitación).
+3. **Authentication → URL Configuration → Redirect URLs:** agregar `appfamiliar://set-password` (solo lo usa "Olvidé mi contraseña").
+4. **Mamá:** Authentication → Users → *Add user → Send invitation* con su correo; ella abre el enlace que le llega y crea su contraseña. Luego, en SQL Editor, ejecutar `supabase/seed/provision_admin.sql` cambiando el correo por el de mamá.
+5. **Funciones de invitación:** *Edge Functions → Deploy a new function → Via Editor*.
+   - Nombre `invite-member`: pegar TODO `supabase/bundled/invite-member.ts` → Deploy. (Dejar activada la verificación de JWT.)
+   - Nombre `accept-invite`: pegar TODO `supabase/bundled/accept-invite.ts` → Deploy → en sus ajustes **desactivar "Verify JWT"** (es pública a propósito: la protege el código de un solo uso).
+   - Supabase les inyecta solas la URL y la llave secreta; no hay que copiarlas.
+6. **Página de invitación** (sección C) y luego en *Edge Functions → Secrets* agregar `INVITE_BASE_URL` con su dirección y volver a desplegar `invite-member`.
+
+> **Llaves:** la **publishable** (`sb_publishable_…`) y la URL van en la app. La **secret** (`sb_secret_…`) NUNCA se pega en la app, en el repositorio ni en un chat: solo vive dentro de Supabase. Si alguna vez se expone, se rota en *Project Settings → API Keys*.
+> Los archivos de `supabase/bundled/` se regeneran con `npm run functions:bundle` si cambia el código de las funciones. El paquete `@supabase/server` no hace falta: las funciones usan `supabase-js`, que ya funciona.
 
 ## B. Compilar la app (APK)
 1. Cuenta gratuita en expo.dev. En el proyecto: `npm install` y `npx eas-cli login` y `npx eas-cli init`.
 2. Variables públicas para la compilación:
    ```
-   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://xxxx.supabase.co --visibility plaintext --environment preview --environment production
-   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon> --visibility plaintext --environment preview --environment production
+   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_URL --value https://igytuhqidvlldngaouhe.supabase.co --visibility plaintext --environment preview --environment production
+   npx eas-cli env:create --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <la llave publishable sb_publishable_…> --visibility plaintext --environment preview --environment production
    ```
 3. `npx eas-cli build -p android --profile preview` → al terminar da un enlace para **descargar el APK**.
 4. Subir el APK a un lugar con enlace directo (Google Drive "cualquiera con el enlace", o GitHub Releases) y copiar ese enlace.

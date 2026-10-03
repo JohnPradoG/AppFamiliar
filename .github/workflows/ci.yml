@@ -23,3 +23,7 @@ jobs:
           git diff --exit-code supabase/setup_all.sql
       - name: setup_all.sql funciona
         run: bash supabase/tests/check_setup_all.sh
+      - name: Los archivos únicos de las funciones están al día
+        run: |
+          node scripts/bundle-functions.mjs
+          git diff --exit-code supabase/bundled

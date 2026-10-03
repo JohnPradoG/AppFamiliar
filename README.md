@@ -4,6 +4,8 @@ App privada para llevar el dinero de la familia (mamá administra; cada hijo ve 
 ## Atajo: base de datos en un solo paso
 En lugar de ejecutar las migraciones una por una, pegar `supabase/setup_all.sql` completo en Supabase → SQL Editor → Run. (Se regenera con las migraciones; `bash supabase/tests/check_setup_all.sh` comprueba que funciona.)
 
+> **Camino más fácil:** todo se puede hacer desde el panel de Supabase, sin instalar nada: ver `docs/PUBLICAR.md` §A.
+
 ## Puesta en marcha (una sola vez, la hace quien administra el proyecto)
 1. Crear proyecto en supabase.com. En **SQL Editor** ejecutar en orden `supabase/migrations/0001 … 0009`.
 2. **Authentication → Providers → Email:** desactivar "Allow new users to sign up". En **URL Configuration → Redirect URLs** agregar `appfamiliar://set-password` (solo para "Olvidé mi contraseña").
