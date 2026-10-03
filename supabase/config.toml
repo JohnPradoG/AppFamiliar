@@ -1,0 +1,10 @@
+# Config local de Supabase CLI (supabase start). En producción, aplicar lo mismo en el panel:
+# Authentication → Providers → Email → desactivar "Allow new users to sign up".
+project_id = "appfamiliar"
+
+[auth]
+enable_signup = false              # nadie puede registrarse: solo las 3 cuentas creadas por el dueño
+minimum_password_length = 8
+[auth.email]
+enable_signup = false
+enable_confirmations = false
