@@ -39,11 +39,13 @@ export function friendlyError(e: unknown): string {
   return 'Ocurrió un error. Intente de nuevo.';
 }
 
-export type Member = { owner_key: 'john' | 'brother'; display_name: string };
+export type Member = { owner_key: 'john' | 'brother'; display_name: string; is_helper: boolean; user_id: string | null };
+// Estado de registro de la familia, sin dinero. Lo pueden pedir mamá y los ayudantes.
 export async function fetchMembers(): Promise<Member[]> {
-  const accounts = unwrap(await supabase.from('accounts').select('owner_key, user_id')) as { owner_key: 'john' | 'brother'; user_id: string }[];
-  const profiles = unwrap(await supabase.from('profiles').select('id, display_name')) as { id: string; display_name: string }[];
-  return accounts.map((a) => ({ owner_key: a.owner_key, display_name: profiles.find((p) => p.id === a.user_id)?.display_name ?? '' }));
+  return unwrap(await supabase.rpc('family_status')) as Member[];
+}
+export async function setHelper(userId: string, value: boolean): Promise<void> {
+  unwrap(await supabase.rpc('set_helper', { p_user: userId, p_value: value }));
 }
 
 async function callFunction<T>(name: string, body: object): Promise<T> {

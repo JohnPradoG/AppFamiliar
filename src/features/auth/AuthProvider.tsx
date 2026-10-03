@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { parseAuthUrl, translateAuthError } from './links';
 
 export type Role = 'admin' | 'user';
-export type Profile = { id: string; role: Role; display_name: string };
+export type Profile = { id: string; role: Role; display_name: string; is_helper: boolean };
 
 type AuthState = {
   loading: boolean;
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loadProfile = useCallback(async (s: Session | null) => {
     if (!s) return setProfile(null);
     // RLS: solo devuelve el perfil del propio usuario (o todos si es mamá; por eso se filtra por id).
-    const { data } = await supabase.from('profiles').select('id, role, display_name').eq('id', s.user.id).maybeSingle();
+    const { data } = await supabase.from('profiles').select('id, role, display_name, is_helper').eq('id', s.user.id).maybeSingle();
     setProfile((data as Profile | null) ?? null);
   }, []);
 

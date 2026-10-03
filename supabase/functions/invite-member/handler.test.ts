@@ -5,8 +5,8 @@ import { handleInvite, type Deps } from './handler.ts';
 function mk(over: Partial<Deps> = {}) {
   const calls: string[] = [];
   const d: Deps = {
-    getCaller: async (h) => (h === 'Bearer mama' || h === 'Bearer john' ? { id: h.slice(7) } : null),
-    isAdmin: async (id) => id === 'mama',
+    getCaller: async (h) => (['Bearer mama', 'Bearer john', 'Bearer helper'].includes(h ?? '') ? { id: (h as string).slice(7) } : null),
+    canInvite: async (id) => id === 'mama' || id === 'helper',
     findMember: async () => null,
     emailTaken: async () => false,
     createInvitation: async (i) => { calls.push(`inv:${i.kind}:${i.ownerKey}:${i.email}:${i.displayName}`); return 'CODE'; },
@@ -17,10 +17,15 @@ function mk(over: Partial<Deps> = {}) {
 const ok = { owner_key: 'john', email: ' John@Mail.com ', display_name: 'John' };
 
 test('sin sesión → 401', async () => assert.equal((await handleInvite(null, ok, mk().d)).status, 401));
-test('un hijo NO puede invitar → 403 y no crea nada', async () => {
+test('un hijo común NO puede invitar → 403 y no crea nada', async () => {
   const { d, calls } = mk();
   assert.equal((await handleInvite('Bearer john', ok, d)).status, 403);
   assert.deepEqual(calls, []);
+});
+test('un ayudante autorizado SÍ puede invitar', async () => {
+  const { d, calls } = mk();
+  assert.equal((await handleInvite('Bearer helper', ok, d)).status, 200);
+  assert.equal(calls.length, 1);
 });
 test('mamá invita: correo normalizado y sin contraseñas en la respuesta', async () => {
   const { d, calls } = mk();
