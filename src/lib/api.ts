@@ -1,3 +1,5 @@
+import { File } from 'expo-file-system';
+import { receiptPath, validateReceipt, type ReceiptMime } from './receipts';
 import type { Movement, Origin } from './movements';
 import { supabase } from './supabase';
 
@@ -123,8 +125,8 @@ export async function registerIncome(v: { machineId: string; amount: number; dat
 export async function addBalance(v: { accountId: string; amount: number; date: string; origin: string; detail: string | null; description: string | null }): Promise<void> {
   unwrap(await supabase.rpc('add_balance', { p_account: v.accountId, p_amount: v.amount, p_date: v.date, p_origin: v.origin, p_origin_detail: v.detail, p_concept: v.description }));
 }
-export async function registerTransfer(v: { accountId: string; amount: number; date: string; concept: string | null }, allowOverdraft = false): Promise<void> {
-  unwrap(await supabase.rpc('register_transfer', { p_account: v.accountId, p_amount: v.amount, p_date: v.date, p_concept: v.concept, p_allow_overdraft: allowOverdraft }));
+export async function registerTransfer(v: { accountId: string; amount: number; date: string; concept: string | null }, allowOverdraft = false): Promise<string> {
+  return unwrap(await supabase.rpc('register_transfer', { p_account: v.accountId, p_amount: v.amount, p_date: v.date, p_concept: v.concept, p_allow_overdraft: allowOverdraft })) as string;
 }
 export type AdminTransfer = { id: string; account_id: string; signed_amount: number; movement_date: string; concept: string | null };
 export async function fetchTransfers(): Promise<AdminTransfer[]> {
@@ -136,4 +138,46 @@ export async function fetchAccountMovements(accountId: string): Promise<Movement
     .select('id, kind, origin, origin_detail, signed_amount, movement_date, concept, updated_at, machine:machines(name)')
     .eq('account_id', accountId).is('deleted_at', null)
     .order('movement_date', { ascending: false }).order('created_at', { ascending: false }).limit(300)) as unknown as Movement[];
+}
+
+// ───────── Comprobantes (Fase 6) ─────────
+export type Receipt = {
+  id: string; storage_path: string; mime_type: ReceiptMime; size_bytes: number; created_at: string;
+  movement: { id: string; kind: string; account_id: string; signed_amount: number; movement_date: string; concept: string | null } | null;
+};
+const RECEIPT_SELECT = 'id, storage_path, mime_type, size_bytes, created_at, movement:account_movements(id, kind, account_id, signed_amount, movement_date, concept)';
+
+// RLS: el hijo solo recibe los comprobantes de SUS movimientos; mamá, todos.
+export async function fetchReceipts(): Promise<Receipt[]> {
+  return unwrap(await supabase.from('receipts').select(RECEIPT_SELECT).is('deleted_at', null).order('created_at', { ascending: false }).limit(200)) as unknown as Receipt[];
+}
+export async function fetchMovementReceipts(movementId: string): Promise<Receipt[]> {
+  return unwrap(await supabase.from('receipts').select(RECEIPT_SELECT).eq('movement_id', movementId).is('deleted_at', null).order('created_at')) as unknown as Receipt[];
+}
+// Enlace temporal (2 min) para ver el archivo. Storage lo concede solo si la persona puede ver ese comprobante.
+export async function receiptUrl(path: string): Promise<string> {
+  const { data, error } = await supabase.storage.from('receipts').createSignedUrl(path, 120);
+  if (error || !data) throw new Error('No se pudo abrir el comprobante.');
+  return data.signedUrl;
+}
+
+export type PickedFile = { uri: string; name: string; mime: string | null | undefined; size: number | null | undefined };
+
+// 1) valida, 2) sube a Storage, 3) registra en la BD. Si el paso 3 falla, se borra el archivo (no quedan huérfanos).
+export async function uploadReceipt(accountId: string, movementId: string, file: PickedFile): Promise<void> {
+  const v = validateReceipt(file);
+  if (!v.ok) throw new Error(v.error);
+  const id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const path = receiptPath(accountId, movementId, id, v.mime);
+  const bytes = await new File(file.uri).arrayBuffer();
+  const up = await supabase.storage.from('receipts').upload(path, bytes, { contentType: v.mime, upsert: false });
+  if (up.error) throw new Error('No se pudo subir el archivo. Revise su internet.');
+  const att = await supabase.rpc('attach_receipt', { p_movement: movementId, p_path: path, p_mime: v.mime, p_size: v.size });
+  if (att.error) {
+    await supabase.storage.from('receipts').remove([path]);
+    throw Object.assign(new Error(att.error.message), { code: att.error.code });
+  }
+}
+export async function deleteReceipt(id: string, reason?: string): Promise<void> {
+  unwrap(await supabase.rpc('delete_receipt', { p_id: id, p_reason: reason ?? null }));
 }

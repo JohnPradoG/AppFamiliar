@@ -7,7 +7,7 @@
 | 3. Cuenta de John | **Hecho:** Inicio (saldo, total ingresos, total transferencias, último movimiento), Historial (Todos/Ingresos/Transferencias), Mi cuenta (origen del saldo, tocar categoría → detalle). Pendiente: pestaña Comprobantes (Fase 6) y Perfil/Notificaciones |
 | 4. Cuenta del hermano | **Hecho en código** (misma UI que John; cada uno solo recibe su cuenta de la BD). Pruebas de aislamiento en `supabase/tests/30_` y `80_` |
 | 5. Movimientos + saldos + transferencias | **Hecho:** pestañas de mamá Inicio · Ingresos · Transferencias · Cuentas · Más; formularios Registrar ingreso (con asignación opcional y distinta por hijo), Agregar saldo (Trabajo/Máquina/Otro/Personalizado), Transferir (aviso si deja saldo negativo); detalle de cuenta con origen del saldo y movimientos. Validaciones con pruebas. Pendiente: adjuntar comprobante (Fase 6) |
-| 6. Comprobantes | **Bucket + políticas en BD hechas.** Falta subida desde la app |
+| 6. Comprobantes | **Hecho:** adjuntar al transferir (elegir archivo o tomar foto; JPG/PNG/PDF ≤ 10 MB), subida a Storage privado + registro; pestaña Comprobantes del hijo; visor con enlace temporal de 2 min. Validación y rutas con pruebas; privacidad probada en BD (`40_`) |
 | 7. Edición + eliminación + auditoría | **En BD hecho** (triggers + RPCs). Falta UI |
 | 8. Seguridad + pruebas | 60+ pruebas de BD/RLS ya corren; falta pruebas de la app |
 | 9. Diseño final | pendiente |

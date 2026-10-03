@@ -13,6 +13,7 @@ export default function UserLayout() {
     <Tabs screenOptions={{ headerShown: false, tabBarStyle: { backgroundColor: colors.card, borderTopColor: colors.border }, tabBarActiveTintColor: colors.info, tabBarInactiveTintColor: colors.muted }}>
       <Tabs.Screen name="index" options={{ title: 'Inicio' }} />
       <Tabs.Screen name="historial" options={{ title: 'Historial' }} />
+      <Tabs.Screen name="comprobantes" options={{ title: 'Comprobantes' }} />
       <Tabs.Screen name="cuenta" options={{ href: null }} />
       <Tabs.Screen name="mas" options={{ title: 'Más' }} />
     </Tabs>
