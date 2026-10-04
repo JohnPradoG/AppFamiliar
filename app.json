@@ -64,6 +64,12 @@
         "projectId": "c21b00aa-99a8-4236-a8df-e245165518a7"
       }
     },
-    "owner": "johnandresaprado"
+    "owner": "johnandresaprado",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/c21b00aa-99a8-4236-a8df-e245165518a7"
+    }
   }
 }
