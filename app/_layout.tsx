@@ -4,6 +4,9 @@ import { AuthProvider } from '../src/features/auth/AuthProvider';
 import { AppLock } from '../src/features/lock';
 import { colors } from '../src/lib/theme';
 
+// Sin esto, en el teléfono la app abre en la primera pantalla declarada ("comprobante") en vez del inicio.
+export const unstable_settings = { initialRouteName: 'index' };
+
 export default function RootLayout() {
   return (
     <AuthProvider>
